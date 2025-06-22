@@ -1,0 +1,116 @@
+{
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"donut_compile_shaders",
+			"add_custom_command"
+		],
+		"files" : 
+		[
+			"donut/compileshaders.cmake",
+			"examples/rt_particles/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 30,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 114,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 180,
+				"parent" : 1
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "ShaderMake::@cdbbb3c32f0f5314efaa"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "Examples/Ray Traced Particles"
+	},
+	"id" : "rt_particles_shaders::@69b1ea8d64cfc4241405",
+	"name" : "rt_particles_shaders",
+	"paths" : 
+	{
+		"build" : "examples/rt_particles",
+		"source" : "examples/rt_particles"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				5
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"path" : "examples/rt_particles/geometry.hlsli",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "examples/rt_particles/mlab.hlsli",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "examples/rt_particles/rt_particles.hlsl",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "examples/rt_particles/utils.hlsli",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"isGenerated" : true,
+			"path" : "out/build/x64-Debug/examples/rt_particles/CMakeFiles/rt_particles_shaders",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "out/build/x64-Debug/examples/rt_particles/CMakeFiles/rt_particles_shaders.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

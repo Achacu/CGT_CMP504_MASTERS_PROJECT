@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "donut/ShaderMake/ShaderMake",
+		"source" : "donut/ShaderMake/ShaderMake"
+	}
+}

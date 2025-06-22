@@ -1,0 +1,98 @@
+{
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"donut_compile_shaders",
+			"add_custom_command"
+		],
+		"files" : 
+		[
+			"donut/compileshaders.cmake",
+			"examples/rt_triangle/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 30,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 114,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 180,
+				"parent" : 1
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "ShaderMake::@cdbbb3c32f0f5314efaa"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "Examples/Ray Traced Triangle"
+	},
+	"id" : "rt_triangle_shaders::@7995fd49a11c53003fbc",
+	"name" : "rt_triangle_shaders",
+	"paths" : 
+	{
+		"build" : "examples/rt_triangle",
+		"source" : "examples/rt_triangle"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0,
+				1
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				2
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"path" : "examples/rt_triangle/rt_triangle.hlsl",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"isGenerated" : true,
+			"path" : "out/build/x64-Debug/examples/rt_triangle/CMakeFiles/rt_triangle_shaders",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "out/build/x64-Debug/examples/rt_triangle/CMakeFiles/rt_triangle_shaders.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

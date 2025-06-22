@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "donut/nvrhi/thirdparty/DirectX-Headers",
+		"source" : "donut/nvrhi/thirdparty/DirectX-Headers"
+	}
+}

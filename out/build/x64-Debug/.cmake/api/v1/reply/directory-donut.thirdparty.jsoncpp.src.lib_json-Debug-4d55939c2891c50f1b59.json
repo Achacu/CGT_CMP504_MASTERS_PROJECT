@@ -1,0 +1,45 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"donut/thirdparty/jsoncpp/src/lib_json/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 199,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"donut/thirdparty/jsoncpp/src/lib_json/jsoncpp.lib"
+			],
+			"targetId" : "jsoncpp_static::@2d13838758c6fdf5e489",
+			"targetIndex" : 47,
+			"type" : "target"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "donut/thirdparty/jsoncpp/src/lib_json",
+		"source" : "donut/thirdparty/jsoncpp/src/lib_json"
+	}
+}
