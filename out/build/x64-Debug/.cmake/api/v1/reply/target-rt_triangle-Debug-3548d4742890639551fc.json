@@ -2,10 +2,10 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/bin/rt_particles.exe"
+			"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/bin/rt_triangle.exe"
 		},
 		{
-			"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/bin/rt_particles.pdb"
+			"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/bin/rt_triangle.pdb"
 		}
 	],
 	"backtrace" : 2,
@@ -22,12 +22,11 @@
 		"files" : 
 		[
 			"C:/Program Files/Microsoft Visual Studio/2022/Community/VC/vcpkg/scripts/buildsystems/vcpkg.cmake",
-			"examples/rt_particles/CMakeLists.txt",
+			"examples/rt_triangle/CMakeLists.txt",
 			"donut/donut-engine.cmake",
 			"donut/CMakeLists.txt",
-			"donut/donut-render.cmake",
-			"donut/donut-core.cmake",
 			"donut/donut-app.cmake",
+			"donut/donut-core.cmake",
 			"donut/nvrhi/CMakeLists.txt"
 		],
 		"nodes" : 
@@ -75,7 +74,7 @@
 			{
 				"command" : 3,
 				"file" : 3,
-				"line" : 102,
+				"line" : 103,
 				"parent" : 4
 			},
 			{
@@ -85,7 +84,7 @@
 			{
 				"command" : 2,
 				"file" : 4,
-				"line" : 31,
+				"line" : 79,
 				"parent" : 9
 			},
 			{
@@ -111,65 +110,49 @@
 				"parent" : 12
 			},
 			{
-				"command" : 3,
-				"file" : 3,
-				"line" : 103,
-				"parent" : 4
-			},
-			{
-				"file" : 6,
-				"parent" : 15
-			},
-			{
 				"command" : 2,
-				"file" : 6,
-				"line" : 79,
-				"parent" : 16
-			},
-			{
-				"command" : 2,
-				"file" : 6,
+				"file" : 4,
 				"line" : 84,
-				"parent" : 16
+				"parent" : 9
 			},
 			{
 				"command" : 2,
-				"file" : 6,
+				"file" : 4,
 				"line" : 86,
-				"parent" : 16
+				"parent" : 9
 			},
 			{
 				"command" : 2,
-				"file" : 6,
+				"file" : 4,
 				"line" : 92,
-				"parent" : 16
+				"parent" : 9
 			},
 			{
-				"file" : 7
+				"file" : 6
 			},
 			{
 				"command" : 2,
-				"file" : 7,
+				"file" : 6,
 				"line" : 278,
-				"parent" : 21
+				"parent" : 18
 			},
 			{
 				"command" : 2,
-				"file" : 6,
+				"file" : 4,
 				"line" : 94,
-				"parent" : 16
+				"parent" : 9
 			},
 			{
 				"command" : 2,
-				"file" : 6,
+				"file" : 4,
 				"line" : 100,
-				"parent" : 16
+				"parent" : 9
 			},
 			{
 				"command" : 2,
-				"file" : 6,
+				"file" : 4,
 				"line" : 116,
-				"parent" : 16
+				"parent" : 9
 			},
 			{
 				"command" : 4,
@@ -354,15 +337,11 @@
 	[
 		{
 			"backtrace" : 3,
-			"id" : "donut_core::@fd251c01b49271d0d6e3"
-		},
-		{
-			"backtrace" : 3,
 			"id" : "donut_engine::@fd251c01b49271d0d6e3"
 		},
 		{
 			"backtrace" : 3,
-			"id" : "donut_render::@fd251c01b49271d0d6e3"
+			"id" : "donut_core::@fd251c01b49271d0d6e3"
 		},
 		{
 			"backtrace" : 3,
@@ -370,19 +349,15 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "lz4::@090198c1f7c8d3d2b473"
-		},
-		{
-			"backtrace" : 3,
 			"id" : "imgui::@090198c1f7c8d3d2b473"
 		},
 		{
 			"backtrace" : 3,
-			"id" : "jsoncpp_static::@2d13838758c6fdf5e489"
+			"id" : "lz4::@090198c1f7c8d3d2b473"
 		},
 		{
 			"backtrace" : 3,
-			"id" : "miniz::@be3f287913c5110a9d10"
+			"id" : "jsoncpp_static::@2d13838758c6fdf5e489"
 		},
 		{
 			"backtrace" : 3,
@@ -394,7 +369,15 @@
 		},
 		{
 			"backtrace" : 3,
+			"id" : "miniz::@be3f287913c5110a9d10"
+		},
+		{
+			"backtrace" : 3,
 			"id" : "nvrhi::@8b1245c28ff8172fffc8"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "nvrhi_vk::@8b1245c28ff8172fffc8"
 		},
 		{
 			"backtrace" : 3,
@@ -406,10 +389,6 @@
 		},
 		{
 			"backtrace" : 3,
-			"id" : "nvrhi_vk::@8b1245c28ff8172fffc8"
-		},
-		{
-			"backtrace" : 3,
 			"id" : "DirectX-Headers::@460a850a6359b634774d"
 		},
 		{
@@ -417,15 +396,15 @@
 			"id" : "DirectX-Guids::@460a850a6359b634774d"
 		},
 		{
-			"backtrace" : 26,
-			"id" : "rt_particles_shaders::@69b1ea8d64cfc4241405"
+			"backtrace" : 23,
+			"id" : "rt_triangle_shaders::@7995fd49a11c53003fbc"
 		}
 	],
 	"folder" : 
 	{
-		"name" : "Examples/Ray Traced Particles"
+		"name" : "Examples/Ray Traced Triangle"
 	},
-	"id" : "rt_particles::@69b1ea8d64cfc4241405",
+	"id" : "rt_triangle::@7995fd49a11c53003fbc",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -437,11 +416,6 @@
 			{
 				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:windows",
 				"role" : "flags"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "donut\\donut_render.lib",
-				"role" : "libraries"
 			},
 			{
 				"backtrace" : 3,
@@ -479,62 +453,62 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 17,
+				"backtrace" : 10,
 				"fragment" : "donut\\thirdparty\\glfw\\src\\glfw3.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 17,
+				"backtrace" : 10,
 				"fragment" : "donut\\thirdparty\\imgui.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 18,
+				"backtrace" : 15,
 				"fragment" : "donut\\nvrhi\\nvrhi_d3d11.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 19,
+				"backtrace" : 16,
 				"fragment" : "d3d11.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 19,
+				"backtrace" : 16,
 				"fragment" : "dxgi.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 19,
+				"backtrace" : 16,
 				"fragment" : "dxguid.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 20,
+				"backtrace" : 17,
 				"fragment" : "donut\\nvrhi\\nvrhi_d3d12.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 22,
+				"backtrace" : 19,
 				"fragment" : "donut\\nvrhi\\thirdparty\\DirectX-Headers\\DirectX-Guids.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 22,
+				"backtrace" : 19,
 				"fragment" : "donut\\nvrhi\\thirdparty\\DirectX-Headers\\DirectX-Headers.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 23,
+				"backtrace" : 20,
 				"fragment" : "d3d12.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 24,
+				"backtrace" : 21,
 				"fragment" : "donut\\nvrhi\\nvrhi_vk.lib",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 25,
+				"backtrace" : 22,
 				"fragment" : "donut\\nvrhi\\nvrhi.lib",
 				"role" : "libraries"
 			},
@@ -545,12 +519,12 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "rt_particles",
-	"nameOnDisk" : "rt_particles.exe",
+	"name" : "rt_triangle",
+	"nameOnDisk" : "rt_triangle.exe",
 	"paths" : 
 	{
-		"build" : "examples/rt_particles",
-		"source" : "examples/rt_particles"
+		"build" : "examples/rt_triangle",
+		"source" : "examples/rt_triangle"
 	},
 	"sourceGroups" : 
 	[
@@ -560,13 +534,6 @@
 			[
 				0
 			]
-		},
-		{
-			"name" : "Header Files",
-			"sourceIndexes" : 
-			[
-				1
-			]
 		}
 	],
 	"sources" : 
@@ -574,13 +541,8 @@
 		{
 			"backtrace" : 2,
 			"compileGroupIndex" : 0,
-			"path" : "examples/rt_particles/rt_particles.cpp",
+			"path" : "examples/rt_triangle/rt_triangle.cpp",
 			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 2,
-			"path" : "examples/rt_particles/rt_particles_cb.h",
-			"sourceGroupIndex" : 1
 		}
 	],
 	"type" : "EXECUTABLE"

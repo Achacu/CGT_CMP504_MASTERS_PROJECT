@@ -35,7 +35,7 @@ struct HitInfo
 
 // ---[ Resources ]---
 
-ConstantBuffer<LightingConstants> g_Lighting : register(b0);
+ConstantBuffer<LightingConstants> g_Lighting : register(b0); //ambient color, light constants (direction, type...), view constants (matrices, viewport info...)
 
 RWTexture2D<float4> u_Output : register(u0);
 
@@ -57,7 +57,7 @@ void RayGen()
     
     MaterialSample surfaceMaterial = DecodeGBuffer(globalIdx, t_GBuffer0, t_GBuffer1, t_GBuffer2, t_GBuffer3);
 
-    float3 surfaceWorldPos = ReconstructWorldPosition(g_Lighting.view, pixelPosition.xy, t_GBufferDepth[pixelPosition.xy].x);
+    float3 surfaceWorldPos = ReconstructWorldPosition(g_Lighting.view, pixelPosition.xy, 0/*, t_GBufferDepth[pixelPosition.xy].x*/); //IMPORTANT
 
     float3 viewIncident = GetIncidentVector(g_Lighting.view.cameraDirectionOrPosition, surfaceWorldPos);
 

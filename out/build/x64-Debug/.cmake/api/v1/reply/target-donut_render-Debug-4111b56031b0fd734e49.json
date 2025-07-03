@@ -12,7 +12,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "donut/donut_app.lib"
+			"path" : "donut/donut_render.lib"
 		}
 	],
 	"backtrace" : 4,
@@ -25,14 +25,12 @@
 			"include",
 			"target_link_libraries",
 			"add_dependencies",
-			"target_compile_definitions",
-			"target_include_directories",
-			"target_sources"
+			"target_include_directories"
 		],
 		"files" : 
 		[
 			"C:/Program Files/Microsoft Visual Studio/2022/Community/VC/vcpkg/scripts/buildsystems/vcpkg.cmake",
-			"donut/donut-app.cmake",
+			"donut/donut-render.cmake",
 			"donut/CMakeLists.txt"
 		],
 		"nodes" : 
@@ -43,7 +41,7 @@
 			{
 				"command" : 2,
 				"file" : 2,
-				"line" : 103,
+				"line" : 102,
 				"parent" : 0
 			},
 			{
@@ -53,7 +51,7 @@
 			{
 				"command" : 1,
 				"file" : 1,
-				"line" : 34,
+				"line" : 29,
 				"parent" : 2
 			},
 			{
@@ -65,79 +63,19 @@
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 79,
-				"parent" : 2
-			},
-			{
-				"command" : 3,
-				"file" : 1,
-				"line" : 92,
-				"parent" : 2
-			},
-			{
-				"command" : 3,
-				"file" : 1,
-				"line" : 84,
-				"parent" : 2
-			},
-			{
-				"command" : 3,
-				"file" : 1,
-				"line" : 100,
+				"line" : 31,
 				"parent" : 2
 			},
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 118,
+				"line" : 33,
 				"parent" : 2
 			},
 			{
 				"command" : 5,
 				"file" : 1,
-				"line" : 113,
-				"parent" : 2
-			},
-			{
-				"command" : 5,
-				"file" : 1,
-				"line" : 109,
-				"parent" : 2
-			},
-			{
-				"command" : 5,
-				"file" : 1,
-				"line" : 110,
-				"parent" : 2
-			},
-			{
-				"command" : 6,
-				"file" : 1,
-				"line" : 35,
-				"parent" : 2
-			},
-			{
-				"command" : 3,
-				"file" : 1,
-				"line" : 102,
-				"parent" : 2
-			},
-			{
-				"command" : 7,
-				"file" : 1,
-				"line" : 82,
-				"parent" : 2
-			},
-			{
-				"command" : 7,
-				"file" : 1,
-				"line" : 90,
-				"parent" : 2
-			},
-			{
-				"command" : 7,
-				"file" : 1,
-				"line" : 98,
+				"line" : 30,
 				"parent" : 2
 			}
 		]
@@ -154,11 +92,7 @@
 			"defines" : 
 			[
 				{
-					"backtrace" : 10,
-					"define" : "DONUT_FORCE_DISCRETE_GPU=0"
-				},
-				{
-					"backtrace" : 11,
+					"backtrace" : 5,
 					"define" : "DONUT_WITH_AFTERMATH=0"
 				},
 				{
@@ -182,10 +116,6 @@
 					"define" : "DONUT_WITH_STATIC_SHADERS=0"
 				},
 				{
-					"backtrace" : 12,
-					"define" : "DONUT_WITH_STREAMLINE=0"
-				},
-				{
 					"backtrace" : 5,
 					"define" : "DONUT_WITH_TASKFLOW"
 				},
@@ -206,10 +136,6 @@
 					"define" : "NOMINMAX"
 				},
 				{
-					"backtrace" : 8,
-					"define" : "VK_USE_PLATFORM_WIN32_KHR"
-				},
-				{
 					"backtrace" : 5,
 					"define" : "_CRT_SECURE_NO_WARNINGS"
 				}
@@ -217,7 +143,7 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 13,
+					"backtrace" : 7,
 					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/include"
 				},
 				{
@@ -259,23 +185,6 @@
 				{
 					"backtrace" : 5,
 					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/thirdparty/tinyexr"
-				},
-				{
-					"backtrace" : 5,
-					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/thirdparty/glfw/include"
-				},
-				{
-					"backtrace" : 5,
-					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/thirdparty/imgui"
-				},
-				{
-					"backtrace" : 14,
-					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/nvrhi/thirdparty/Vulkan-Headers/include"
-				},
-				{
-					"backtrace" : 6,
-					"isSystem" : true,
-					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/nvrhi/thirdparty/DirectX-Headers/include"
 				}
 			],
 			"language" : "CXX",
@@ -313,17 +222,25 @@
 			},
 			"sourceIndexes" : 
 			[
-				14,
-				15,
-				16,
-				17,
-				18,
 				19,
 				20,
 				21,
 				22,
 				23,
-				24
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37
 			]
 		}
 	],
@@ -331,11 +248,11 @@
 	[
 		{
 			"backtrace" : 5,
-			"id" : "donut_core::@fd251c01b49271d0d6e3"
+			"id" : "donut_engine::@fd251c01b49271d0d6e3"
 		},
 		{
 			"backtrace" : 5,
-			"id" : "donut_engine::@fd251c01b49271d0d6e3"
+			"id" : "donut_core::@fd251c01b49271d0d6e3"
 		},
 		{
 			"backtrace" : 5,
@@ -343,19 +260,7 @@
 		},
 		{
 			"backtrace" : 5,
-			"id" : "imgui::@090198c1f7c8d3d2b473"
-		},
-		{
-			"backtrace" : 5,
 			"id" : "jsoncpp_static::@2d13838758c6fdf5e489"
-		},
-		{
-			"backtrace" : 5,
-			"id" : "miniz::@be3f287913c5110a9d10"
-		},
-		{
-			"backtrace" : 5,
-			"id" : "glfw::@96326d8ef3d4ab9e7c48"
 		},
 		{
 			"backtrace" : 5,
@@ -363,30 +268,14 @@
 		},
 		{
 			"backtrace" : 5,
+			"id" : "miniz::@be3f287913c5110a9d10"
+		},
+		{
+			"backtrace" : 5,
 			"id" : "nvrhi::@8b1245c28ff8172fffc8"
 		},
 		{
 			"backtrace" : 6,
-			"id" : "nvrhi_d3d12::@8b1245c28ff8172fffc8"
-		},
-		{
-			"backtrace" : 7,
-			"id" : "nvrhi_d3d11::@8b1245c28ff8172fffc8"
-		},
-		{
-			"backtrace" : 8,
-			"id" : "nvrhi_vk::@8b1245c28ff8172fffc8"
-		},
-		{
-			"backtrace" : 6,
-			"id" : "DirectX-Headers::@460a850a6359b634774d"
-		},
-		{
-			"backtrace" : 6,
-			"id" : "DirectX-Guids::@460a850a6359b634774d"
-		},
-		{
-			"backtrace" : 9,
 			"id" : "donut_shaders::@d00c6fab64731cfaa6d7"
 		}
 	],
@@ -394,9 +283,9 @@
 	{
 		"name" : "Donut"
 	},
-	"id" : "donut_app::@fd251c01b49271d0d6e3",
-	"name" : "donut_app",
-	"nameOnDisk" : "donut_app.lib",
+	"id" : "donut_render::@fd251c01b49271d0d6e3",
+	"name" : "donut_render",
+	"nameOnDisk" : "donut_render.lib",
 	"paths" : 
 	{
 		"build" : "donut",
@@ -421,24 +310,37 @@
 				10,
 				11,
 				12,
-				13
+				13,
+				14,
+				15,
+				16,
+				17,
+				18
 			]
 		},
 		{
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				14,
-				15,
-				16,
-				17,
-				18,
 				19,
 				20,
 				21,
 				22,
 				23,
-				24
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37
 			]
 		}
 	],
@@ -446,138 +348,211 @@
 	[
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/AftermathCrashDump.h",
+			"path" : "donut/include/donut/render/BloomPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/ApplicationBase.h",
+			"path" : "donut/include/donut/render/CascadedShadowMap.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/Camera.h",
+			"path" : "donut/include/donut/render/DeferredLightingPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/DeviceManager.h",
+			"path" : "donut/include/donut/render/DepthPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/DeviceManager_DX11.h",
+			"path" : "donut/include/donut/render/DrawStrategy.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/DeviceManager_DX12.h",
+			"path" : "donut/include/donut/render/EnvironmentMapPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/DeviceManager_VK.h",
+			"path" : "donut/include/donut/render/ForwardShadingPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/MediaFileSystem.h",
+			"path" : "donut/include/donut/render/GBuffer.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/StreamlineInterface.h",
+			"path" : "donut/include/donut/render/GBufferFillPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/Timer.h",
+			"path" : "donut/include/donut/render/GeometryPasses.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/UserInterfaceUtils.h",
+			"path" : "donut/include/donut/render/JointsRenderPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/imgui_console.h",
+			"path" : "donut/include/donut/render/LightProbeProcessingPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/imgui_nvrhi.h",
+			"path" : "donut/include/donut/render/MipMapGenPass.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
-			"path" : "donut/include/donut/app/imgui_renderer.h",
+			"path" : "donut/include/donut/render/PixelReadbackPass.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "donut/include/donut/render/PlanarShadowMap.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "donut/include/donut/render/SkyPass.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "donut/include/donut/render/SsaoPass.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "donut/include/donut/render/TemporalAntiAliasingPass.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 4,
+			"path" : "donut/include/donut/render/ToneMappingPasses.h",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/ApplicationBase.cpp",
+			"path" : "donut/src/render/BloomPass.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/Camera.cpp",
+			"path" : "donut/src/render/CascadedShadowMap.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/DeviceManager.cpp",
+			"path" : "donut/src/render/DeferredLightingPass.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/MediaFileSystem.cpp",
+			"path" : "donut/src/render/DepthPass.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/UserInterfaceUtils.cpp",
+			"path" : "donut/src/render/DrawStrategy.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/imgui_console.cpp",
+			"path" : "donut/src/render/EnvironmentMapPass.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/imgui_nvrhi.cpp",
+			"path" : "donut/src/render/ForwardShadingPass.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/imgui_renderer.cpp",
+			"path" : "donut/src/render/GBuffer.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 15,
+			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/dx11/DeviceManager_DX11.cpp",
+			"path" : "donut/src/render/GBufferFillPass.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 16,
+			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/dx12/DeviceManager_DX12.cpp",
+			"path" : "donut/src/render/GeometryPasses.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 17,
+			"backtrace" : 4,
 			"compileGroupIndex" : 0,
-			"path" : "donut/src/app/vulkan/DeviceManager_VK.cpp",
+			"path" : "donut/src/render/JointsRenderPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/LightProbeProcessingPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/MipMapGenPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/PixelReadbackPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/PlanarShadowMap.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/SkyPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/SsaoPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/TemporalAntiAliasingPass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "donut/src/render/ToneMappingPasses.cpp",
 			"sourceGroupIndex" : 1
 		}
 	],
