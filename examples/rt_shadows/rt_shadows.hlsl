@@ -24,6 +24,7 @@
 
 #include <donut/shaders/gbuffer.hlsli>
 #include <donut/shaders/lighting.hlsli>
+#include "donut/shaders/surface.hlsli"
 #include "lighting_cb.h"
 
 // ---[ Structures ]---
@@ -41,10 +42,12 @@ RWTexture2D<float4> u_Output : register(u0);
 
 RaytracingAccelerationStructure SceneBVH : register(t0);
 Texture2D t_GBufferDepth : register(t1);
-Texture2D t_GBuffer0 : register(t2);
-Texture2D t_GBuffer1 : register(t3);
-Texture2D t_GBuffer2 : register(t4);
-Texture2D t_GBuffer3 : register(t5);
+
+//each of the textures will be indexed by pixel position and return a float4
+Texture2D t_GBuffer0 : register(t2); //[albedo.rgb, opacity]
+Texture2D t_GBuffer1 : register(t3); //[specular.rgb, occlusion]
+Texture2D t_GBuffer2 : register(t4); //[normal.xyz, roughness]
+Texture2D t_GBuffer3 : register(t5); //[emissive.rgb, nothing]
 
 
 // ---[ Ray Generation Shader ]---
@@ -55,10 +58,23 @@ void RayGen()
     uint2 globalIdx = DispatchRaysIndex().xy;
     float2 pixelPosition = float2(globalIdx) + 0.5;
     
-    MaterialSample surfaceMaterial = DecodeGBuffer(globalIdx, t_GBuffer0, t_GBuffer1, t_GBuffer2, t_GBuffer3);
+    //(gbuffer.hlsli)
+    MaterialSample surfaceMaterial = DefaultMaterialSample();
+    surfaceMaterial.diffuseAlbedo = float3(1, 1, 1);
+    surfaceMaterial.opacity = 1;
+    surfaceMaterial.specularF0 = 0;
+    surfaceMaterial.occlusion = 0;
+    surfaceMaterial.shadingNormal = float3(pixelPosition.x, pixelPosition.y, 0);
+    surfaceMaterial.roughness = 1;
+    surfaceMaterial.emissiveColor = 0;
+    surfaceMaterial.geometryNormal = surfaceMaterial.shadingNormal;
+    
+    //MaterialSample surfaceMaterial = DecodeGBuffer(globalIdx, t_GBuffer0, t_GBuffer1, t_GBuffer2, t_GBuffer3);
 
+    //calculates ray origin world position (gbuffer.hlsli)
     float3 surfaceWorldPos = ReconstructWorldPosition(g_Lighting.view, pixelPosition.xy, 0/*, t_GBufferDepth[pixelPosition.xy].x*/); //IMPORTANT
-
+    
+    //(gbuffer.hlsli)
     float3 viewIncident = GetIncidentVector(g_Lighting.view.cameraDirectionOrPosition, surfaceWorldPos);
 
     // Setup the ray
@@ -82,23 +98,25 @@ void RayGen()
         ray,
         payload);
 
-    float shadow = (payload.missed) ? 1 : 0;
-
     float3 diffuseTerm = 0;
     float3 specularTerm = 0;
 
     float3 diffuseRadiance, specularRadiance;
+    //(lighting.hlsli)
     ShadeSurface(g_Lighting.light, surfaceMaterial, surfaceWorldPos, viewIncident, diffuseRadiance, specularRadiance);
-    
-    diffuseTerm += (shadow * diffuseRadiance) * g_Lighting.light.color;
-    specularTerm += (shadow * specularRadiance) * g_Lighting.light.color;
+    //diffuseRadiance = 0;
+    //specularRadiance = 0;
+        
+    diffuseTerm += (diffuseRadiance) * g_Lighting.light.color;
+    specularTerm += (specularRadiance) * g_Lighting.light.color;
 
     diffuseTerm += g_Lighting.ambientColor.rgb * surfaceMaterial.diffuseAlbedo;
     
     float3 outputColor = diffuseTerm
         + specularTerm
-        + surfaceMaterial.emissiveColor;
+        /*+ surfaceMaterial.emissiveColor*/;
 
+    //outputColor = surfaceWorldPos / 1000.0; DEBUGGING
     u_Output[globalIdx] = float4(outputColor, 1);
 }
 

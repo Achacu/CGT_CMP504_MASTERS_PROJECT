@@ -1011,7 +1011,7 @@
 				{
 					"directoryIndex" : 17,
 					"id" : "basic_triangle::@43141f84464c8e0191d2",
-					"jsonFile" : "target-basic_triangle-Debug-71f5108b3e75ba8e7cf6.json",
+					"jsonFile" : "target-basic_triangle-Debug-e1d30411e785100346b3.json",
 					"name" : "basic_triangle",
 					"projectIndex" : 0
 				},
@@ -1025,7 +1025,7 @@
 				{
 					"directoryIndex" : 21,
 					"id" : "bindless_rendering::@135a21801c0bf156f9d7",
-					"jsonFile" : "target-bindless_rendering-Debug-68d0a9e7440f495bcadd.json",
+					"jsonFile" : "target-bindless_rendering-Debug-f0cc77fe3f1a69cd48c9.json",
 					"name" : "bindless_rendering",
 					"projectIndex" : 0
 				},
@@ -1039,14 +1039,14 @@
 				{
 					"directoryIndex" : 19,
 					"id" : "deferred_shading::@96af2796acbe19b4ed80",
-					"jsonFile" : "target-deferred_shading-Debug-f2d0c594955ed933a674.json",
+					"jsonFile" : "target-deferred_shading-Debug-d8c592be1ca2a7d02d51.json",
 					"name" : "deferred_shading",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 1,
 					"id" : "donut_app::@fd251c01b49271d0d6e3",
-					"jsonFile" : "target-donut_app-Debug-49fec096ea20d0eb0470.json",
+					"jsonFile" : "target-donut_app-Debug-63569ec27b9ed6e34f6d.json",
 					"name" : "donut_app",
 					"projectIndex" : 1
 				},
@@ -1067,7 +1067,7 @@
 				{
 					"directoryIndex" : 1,
 					"id" : "donut_render::@fd251c01b49271d0d6e3",
-					"jsonFile" : "target-donut_render-Debug-4111b56031b0fd734e49.json",
+					"jsonFile" : "target-donut_render-Debug-8a3628b209f06fe6ae4a.json",
 					"name" : "donut_render",
 					"projectIndex" : 1
 				},
@@ -1081,7 +1081,7 @@
 				{
 					"directoryIndex" : 16,
 					"id" : "feature_demo::@9d2ea179656340f3ca88",
-					"jsonFile" : "target-feature_demo-Debug-1c698646f8407b32f5ed.json",
+					"jsonFile" : "target-feature_demo-Debug-f65bc8f36eab912eb52a.json",
 					"name" : "feature_demo",
 					"projectIndex" : 0
 				},
@@ -1095,7 +1095,7 @@
 				{
 					"directoryIndex" : 20,
 					"id" : "headless::@d4439708917ffb7392ba",
-					"jsonFile" : "target-headless-Debug-713b69c4d5519c575e3a.json",
+					"jsonFile" : "target-headless-Debug-7423b8dc3dd048d92ad6.json",
 					"name" : "headless",
 					"projectIndex" : 0
 				},
@@ -1130,7 +1130,7 @@
 				{
 					"directoryIndex" : 27,
 					"id" : "meshlets::@33bee1220286d2204ba7",
-					"jsonFile" : "target-meshlets-Debug-233151a3a9fa87dbd30d.json",
+					"jsonFile" : "target-meshlets-Debug-811b5b368822bf52ec72.json",
 					"name" : "meshlets",
 					"projectIndex" : 0
 				},
@@ -1179,7 +1179,7 @@
 				{
 					"directoryIndex" : 25,
 					"id" : "rt_bindless::@e65138556bdf023159d3",
-					"jsonFile" : "target-rt_bindless-Debug-d88c2b5368023311fcc2.json",
+					"jsonFile" : "target-rt_bindless-Debug-37a465321e6ee346385c.json",
 					"name" : "rt_bindless",
 					"projectIndex" : 0
 				},
@@ -1193,7 +1193,7 @@
 				{
 					"directoryIndex" : 26,
 					"id" : "rt_particles::@69b1ea8d64cfc4241405",
-					"jsonFile" : "target-rt_particles-Debug-f997dc84a7cfbe22eedf.json",
+					"jsonFile" : "target-rt_particles-Debug-1151ed0a47eb8ba7b9bf.json",
 					"name" : "rt_particles",
 					"projectIndex" : 0
 				},
@@ -1207,7 +1207,7 @@
 				{
 					"directoryIndex" : 29,
 					"id" : "rt_reflections::@2e0e3565467e4e74b279",
-					"jsonFile" : "target-rt_reflections-Debug-26d95c6a7296566f3866.json",
+					"jsonFile" : "target-rt_reflections-Debug-d7a7ce7df9955f4a9b7b.json",
 					"name" : "rt_reflections",
 					"projectIndex" : 0
 				},
@@ -1221,7 +1221,7 @@
 				{
 					"directoryIndex" : 24,
 					"id" : "rt_shadows::@97455ca5daa555f28a91",
-					"jsonFile" : "target-rt_shadows-Debug-2f8ffa302e7734a92e77.json",
+					"jsonFile" : "target-rt_shadows-Debug-0d72a17aec8e147ebda3.json",
 					"name" : "rt_shadows",
 					"projectIndex" : 0
 				},
@@ -1235,7 +1235,7 @@
 				{
 					"directoryIndex" : 23,
 					"id" : "rt_triangle::@7995fd49a11c53003fbc",
-					"jsonFile" : "target-rt_triangle-Debug-3548d4742890639551fc.json",
+					"jsonFile" : "target-rt_triangle-Debug-44875adaac8b77d94403.json",
 					"name" : "rt_triangle",
 					"projectIndex" : 0
 				},
@@ -1249,7 +1249,7 @@
 				{
 					"directoryIndex" : 30,
 					"id" : "shader_specializations::@33523a2a663667f2f5e1",
-					"jsonFile" : "target-shader_specializations-Debug-57f31432ff907698b872.json",
+					"jsonFile" : "target-shader_specializations-Debug-576b67b3eb3534523f25.json",
 					"name" : "shader_specializations",
 					"projectIndex" : 0
 				},
@@ -1263,7 +1263,7 @@
 				{
 					"directoryIndex" : 28,
 					"id" : "threaded_rendering::@607543a4e58c1edd83a3",
-					"jsonFile" : "target-threaded_rendering-Debug-d9a627846798d2b5f1b8.json",
+					"jsonFile" : "target-threaded_rendering-Debug-99b9541dd381bff5be74.json",
 					"name" : "threaded_rendering",
 					"projectIndex" : 0
 				},
@@ -1277,7 +1277,7 @@
 				{
 					"directoryIndex" : 22,
 					"id" : "variable_shading::@31f586fa6838995b8699",
-					"jsonFile" : "target-variable_shading-Debug-0dc82946aecb6ee81fd0.json",
+					"jsonFile" : "target-variable_shading-Debug-4c6bd9b3581c7224300d.json",
 					"name" : "variable_shading",
 					"projectIndex" : 0
 				},
@@ -1291,7 +1291,7 @@
 				{
 					"directoryIndex" : 18,
 					"id" : "vertex_buffer::@83beeeb3542077d182e5",
-					"jsonFile" : "target-vertex_buffer-Debug-b4684c74a0a605596e4b.json",
+					"jsonFile" : "target-vertex_buffer-Debug-fe68d56505433a9b985c.json",
 					"name" : "vertex_buffer",
 					"projectIndex" : 0
 				},

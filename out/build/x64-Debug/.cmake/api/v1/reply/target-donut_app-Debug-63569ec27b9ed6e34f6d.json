@@ -77,13 +77,13 @@
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 92,
+				"line" : 84,
 				"parent" : 2
 			},
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 84,
+				"line" : 92,
 				"parent" : 2
 			},
 			{
@@ -273,7 +273,7 @@
 					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/nvrhi/thirdparty/Vulkan-Headers/include"
 				},
 				{
-					"backtrace" : 7,
+					"backtrace" : 8,
 					"isSystem" : true,
 					"path" : "C:/Eloi/Abertay/CMP505-MastersProject/CGT_CMP504_MASTERS_PROJECT/donut/nvrhi/thirdparty/DirectX-Headers/include"
 				}
@@ -331,15 +331,11 @@
 	[
 		{
 			"backtrace" : 5,
-			"id" : "donut_engine::@fd251c01b49271d0d6e3"
-		},
-		{
-			"backtrace" : 5,
 			"id" : "donut_core::@fd251c01b49271d0d6e3"
 		},
 		{
 			"backtrace" : 5,
-			"id" : "imgui::@090198c1f7c8d3d2b473"
+			"id" : "donut_engine::@fd251c01b49271d0d6e3"
 		},
 		{
 			"backtrace" : 5,
@@ -347,11 +343,11 @@
 		},
 		{
 			"backtrace" : 5,
-			"id" : "jsoncpp_static::@2d13838758c6fdf5e489"
+			"id" : "imgui::@090198c1f7c8d3d2b473"
 		},
 		{
 			"backtrace" : 5,
-			"id" : "glfw::@96326d8ef3d4ab9e7c48"
+			"id" : "jsoncpp_static::@2d13838758c6fdf5e489"
 		},
 		{
 			"backtrace" : 5,
@@ -363,7 +359,7 @@
 		},
 		{
 			"backtrace" : 5,
-			"id" : "nvrhi::@8b1245c28ff8172fffc8"
+			"id" : "glfw::@96326d8ef3d4ab9e7c48"
 		},
 		{
 			"backtrace" : 6,
@@ -371,18 +367,22 @@
 		},
 		{
 			"backtrace" : 7,
-			"id" : "nvrhi_d3d12::@8b1245c28ff8172fffc8"
-		},
-		{
-			"backtrace" : 8,
 			"id" : "nvrhi_d3d11::@8b1245c28ff8172fffc8"
 		},
 		{
-			"backtrace" : 7,
+			"backtrace" : 8,
+			"id" : "nvrhi_d3d12::@8b1245c28ff8172fffc8"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "nvrhi::@8b1245c28ff8172fffc8"
+		},
+		{
+			"backtrace" : 8,
 			"id" : "DirectX-Headers::@460a850a6359b634774d"
 		},
 		{
-			"backtrace" : 7,
+			"backtrace" : 8,
 			"id" : "DirectX-Guids::@460a850a6359b634774d"
 		},
 		{
