@@ -1,0 +1,25 @@
+﻿################################################################################
+# This .gitignore file is manually maintained
+################################################################################
+
+src/D3D12RaytracingMiniEngineSample/dxcompiler.dll
+
+**/bin/x64
+**/obj/x64
+**/src/packages
+**/src/bin
+**/src/obj
+**/.vs
+
+*.hlsl.h
+**/Build_VS16
+**/Build
+
+*.vcxproj.user
+*.opendb
+src/D3D12OMMOfflineBaker/x64
+src/x64
+src/D3D12OMMOfflineBaker/leavesOMM.bin
+src/D3D12OMMOfflineBaker/treeModel.bin
+src/D3D12OMMOfflineBaker/treeOMM.bin
+src/D3D12OMMOfflineBaker/jacaranda_tree_4k.obj
