@@ -371,6 +371,13 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
 }
 
 // Build geometry used in the sample.
+D3DBuffer sphereAABBsBuffer;
+std::vector<D3D12_RAYTRACING_AABB> aabbs(2);
+struct Sphere
+{
+    XMFLOAT3 center;
+    float radius;
+};
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
     auto device = m_deviceResources->GetD3DDevice();
@@ -446,6 +453,27 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     AllocateUploadBuffer(device, indices, sizeof(indices), &m_indexBuffer.resource);
     AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
 
+    //TESTING
+    Sphere spheres[] =
+    {
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), 1.0f },
+        { XMFLOAT3(4.0f, 0.0f, 0.0f), 0.5f }
+    };    
+    for (int i = 0; i < size(spheres); i++)
+    {
+        Sphere& s = spheres[i];
+        aabbs[i].MinX = s.center.x - s.radius;
+        aabbs[i].MinY = s.center.y - s.radius;
+        aabbs[i].MinZ = s.center.z - s.radius;
+        aabbs[i].MaxX = s.center.x + s.radius;
+        aabbs[i].MaxY = s.center.y + s.radius;
+        aabbs[i].MaxZ = s.center.z + s.radius;
+    }
+
+    AllocateUploadBuffer(device, aabbs.data(), sizeof(D3D12_RAYTRACING_AABB) * aabbs.size(), &sphereAABBsBuffer.resource);
+
+    //
+
     // Vertex buffer is passed to the shader along with index buffer as a descriptor table.
     // Vertex buffer descriptor must follow index buffer descriptor in the descriptor heap.
     UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, sizeof(indices)/4, 0);
@@ -464,16 +492,22 @@ void D3D12RaytracingSimpleLighting::BuildAccelerationStructures()
     // Reset the command list for the acceleration structure construction.
     commandList->Reset(commandAllocator, nullptr);
 
+    //D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
+    //geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
+    //geometryDesc.Triangles.IndexBuffer = m_indexBuffer.resource->GetGPUVirtualAddress();
+    //geometryDesc.Triangles.IndexCount = static_cast<UINT>(m_indexBuffer.resource->GetDesc().Width) / sizeof(Index);
+    //geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R16_UINT;
+    //geometryDesc.Triangles.Transform3x4 = 0;
+    //geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
+    //geometryDesc.Triangles.VertexCount = static_cast<UINT>(m_vertexBuffer.resource->GetDesc().Width) / sizeof(Vertex);
+    //geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer.resource->GetGPUVirtualAddress();
+    //geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
+
     D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
-    geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-    geometryDesc.Triangles.IndexBuffer = m_indexBuffer.resource->GetGPUVirtualAddress();
-    geometryDesc.Triangles.IndexCount = static_cast<UINT>(m_indexBuffer.resource->GetDesc().Width) / sizeof(Index);
-    geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R16_UINT;
-    geometryDesc.Triangles.Transform3x4 = 0;
-    geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;
-    geometryDesc.Triangles.VertexCount = static_cast<UINT>(m_vertexBuffer.resource->GetDesc().Width) / sizeof(Vertex);
-    geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer.resource->GetGPUVirtualAddress();
-    geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
+    geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
+    geometryDesc.AABBs.AABBCount = static_cast<UINT>(aabbs.size());
+    geometryDesc.AABBs.AABBs.StartAddress = sphereAABBsBuffer.resource->GetGPUVirtualAddress();
+    geometryDesc.AABBs.AABBs.StrideInBytes = sizeof(D3D12_RAYTRACING_AABB);
 
 
     // Mark the geometry as opaque. 
