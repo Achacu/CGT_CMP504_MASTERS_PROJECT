@@ -167,4 +167,19 @@ void MyMissShader(inout RayPayload payload)
     payload.color = background;
 }
 
+[shader("intersection")]
+void SphereIntersectionShader()
+{
+    float distance = 1.0f;
+    uint hitKind = 0; //user defined
+    MyAttributes attr;
+    ReportHit(distance, hitKind, attr);
+}
+
+[shader("closesthit")]
+void SphereClosestHitShader(inout RayPayload payload, in MyAttributes attr)
+{
+    payload.color = float4(0, 1, 0, 1);
+}
+
 #endif // RAYTRACING_HLSL

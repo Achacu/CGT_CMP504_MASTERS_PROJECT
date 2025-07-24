@@ -19,7 +19,8 @@ using namespace DX;
 
 const wchar_t* D3D12RaytracingSimpleLighting::c_hitGroupName = L"MyHitGroup";
 const wchar_t* D3D12RaytracingSimpleLighting::c_raygenShaderName = L"MyRaygenShader";
-const wchar_t* D3D12RaytracingSimpleLighting::c_closestHitShaderName = L"MyClosestHitShader";
+const wchar_t* D3D12RaytracingSimpleLighting::c_closestHitShaderName = L"SphereClosestHitShader";//L"MyClosestHitShader";
+const wchar_t* D3D12RaytracingSimpleLighting::c_intersectionShaderName = L"SphereIntersectionShader";
 const wchar_t* D3D12RaytracingSimpleLighting::c_missShaderName = L"MyMissShader";
 
 D3D12RaytracingSimpleLighting::D3D12RaytracingSimpleLighting(UINT width, UINT height, std::wstring name) :
@@ -283,6 +284,7 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     {
         lib->DefineExport(c_raygenShaderName);
         lib->DefineExport(c_closestHitShaderName);
+        lib->DefineExport(c_intersectionShaderName);
         lib->DefineExport(c_missShaderName);
     }
     
@@ -290,9 +292,11 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     // A hit group specifies closest hit, any hit and intersection shaders to be executed when a ray intersects the geometry's triangle/AABB.
     // In this sample, we only use triangle geometry with a closest hit shader, so others are not set.
     auto hitGroup = raytracingPipeline.CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
+    hitGroup->SetIntersectionShaderImport(c_intersectionShaderName); //procedural geometry needs to be used in Acceleration Structure for a custom intersection shader
     hitGroup->SetClosestHitShaderImport(c_closestHitShaderName);
     hitGroup->SetHitGroupExport(c_hitGroupName);
-    hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES);
+    //hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES); //TODO: add intersection shader for 
+    hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE); //TODO: add intersection shader for 
     
     // Shader config
     // Defines the maximum sizes in bytes for the ray payload and attribute structure.
@@ -470,6 +474,7 @@ void D3D12RaytracingSimpleLighting::BuildAccelerationStructures()
     geometryDesc.Triangles.VertexCount = static_cast<UINT>(m_vertexBuffer.resource->GetDesc().Width) / sizeof(Vertex);
     geometryDesc.Triangles.VertexBuffer.StartAddress = m_vertexBuffer.resource->GetGPUVirtualAddress();
     geometryDesc.Triangles.VertexBuffer.StrideInBytes = sizeof(Vertex);
+
 
     // Mark the geometry as opaque. 
     // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
