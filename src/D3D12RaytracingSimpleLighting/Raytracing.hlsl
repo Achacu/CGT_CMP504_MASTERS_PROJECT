@@ -14,12 +14,18 @@
 
 #define HLSL
 #include "RaytracingHlslCompat.h"
+struct Sphere
+{
+    XMFLOAT3 center;
+    float radius;
+};
+
 
 RaytracingAccelerationStructure Scene : register(t0, space0);
 RWTexture2D<float4> RenderTarget : register(u0);
 ByteAddressBuffer Indices : register(t1, space0);
 StructuredBuffer<Vertex> Vertices : register(t2, space0);
-//StructuredBuffer<Sphere> Spheres: register(t3, space0); //(center.xyz, radius)
+StructuredBuffer<Sphere> Spheres: register(t3, space0); //(center.xyz, radius)
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
@@ -175,9 +181,9 @@ void SphereIntersectionShader()
     float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
     float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
     
-    float4 sphere = (sphereIndex == 0) ? sphere1 : sphere2;
-    float3 center = sphere.xyz;
-    float radius = sphere.w;
+    Sphere sphere = Spheres[sphereIndex]; //(sphereIndex == 0) ? sphere1 : sphere2;
+    float3 center = sphere.center;
+    float radius = sphere.radius;
     
     
     float3 rayOrigin = WorldRayOrigin();

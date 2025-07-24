@@ -41,10 +41,6 @@ struct Vertex
     XMFLOAT3 normal;
 };
 
-//struct Sphere
-//{
-//    XMFLOAT3 center;
-//    float radius;
-//};
+
 
 #endif // RAYTRACINGHLSLCOMPAT_H
