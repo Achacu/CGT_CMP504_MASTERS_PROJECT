@@ -362,7 +362,7 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
     // Allocate a heap for 3 descriptors:
     // 2 - vertex and index buffer SRVs
     // 1 - raytracing output texture SRV
-    descriptorHeapDesc.NumDescriptors = 3; 
+    descriptorHeapDesc.NumDescriptors = 4; //TESTING: had to increment heap size to allow for sphere buffer descriptor
     descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     descriptorHeapDesc.NodeMask = 0;
@@ -374,7 +374,7 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
 
 // Build geometry used in the sample.
 D3DBuffer sphereAABBsBuffer;
-std::vector<D3D12_RAYTRACING_AABB> aabbs(2);
+std::vector<D3D12_RAYTRACING_AABB> aabbs;
 struct Sphere
 {
     XMFLOAT3 center;
@@ -459,17 +459,21 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     Sphere spheres[] =
     {
         { XMFLOAT3(0.0f, 0.0f, 0.0f), 1.0f },
-        { XMFLOAT3(4.0f, 0.0f, 0.0f), 0.5f }
+        { XMFLOAT3(4.0f, 0.0f, 0.0f), 0.5f },
+        { XMFLOAT3(4.0f, 1.0f, 0.0f), 0.5f },
     };    
-    for (int i = 0; i < size(spheres); i++)
+    for (int i = 0; i < ARRAYSIZE(spheres); i++)
     {
         Sphere& s = spheres[i];
-        aabbs[i].MinX = s.center.x - s.radius;
-        aabbs[i].MinY = s.center.y - s.radius;
-        aabbs[i].MinZ = s.center.z - s.radius;
-        aabbs[i].MaxX = s.center.x + s.radius;
-        aabbs[i].MaxY = s.center.y + s.radius;
-        aabbs[i].MaxZ = s.center.z + s.radius;
+        D3D12_RAYTRACING_AABB aabb;
+        aabb.MinX = s.center.x - s.radius;
+        aabb.MinY = s.center.y - s.radius;
+        aabb.MinZ = s.center.z - s.radius;
+        aabb.MaxX = s.center.x + s.radius;
+        aabb.MaxY = s.center.y + s.radius;
+        aabb.MaxZ = s.center.z + s.radius;
+
+        aabbs.push_back(aabb);
     }
 
     AllocateUploadBuffer(device, spheres, sizeof(spheres), &m_sphereBuffer.resource); //to be sent to shader (added to global root signature)
