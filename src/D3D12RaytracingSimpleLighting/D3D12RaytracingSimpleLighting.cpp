@@ -295,8 +295,8 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     hitGroup->SetIntersectionShaderImport(c_intersectionShaderName); //procedural geometry needs to be used in Acceleration Structure for a custom intersection shader
     hitGroup->SetClosestHitShaderImport(c_closestHitShaderName);
     hitGroup->SetHitGroupExport(c_hitGroupName);
-    //hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES); //TODO: add intersection shader for 
-    hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE); //TODO: add intersection shader for 
+    //hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES); 
+    hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE);
     
     // Shader config
     // Defines the maximum sizes in bytes for the ray payload and attribute structure.
@@ -668,7 +668,7 @@ void D3D12RaytracingSimpleLighting::OnUpdate()
     // Rotate the camera around Y axis.
     {
         float secondsToRotateAround = 24.0f;
-        float angleToRotateBy = 0.0f;//360.0f * (elapsedTime / secondsToRotateAround); DEBUGGING
+        float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround); //DEBUGGING
         XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
         m_eye = XMVector3Transform(m_eye, rotate);
         m_up = XMVector3Transform(m_up, rotate);

@@ -19,6 +19,7 @@ RaytracingAccelerationStructure Scene : register(t0, space0);
 RWTexture2D<float4> RenderTarget : register(u0);
 ByteAddressBuffer Indices : register(t1, space0);
 StructuredBuffer<Vertex> Vertices : register(t2, space0);
+//StructuredBuffer<Sphere> Spheres: register(t3, space0); //(center.xyz, radius)
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
@@ -170,16 +171,43 @@ void MyMissShader(inout RayPayload payload)
 [shader("intersection")]
 void SphereIntersectionShader()
 {
-    float distance = 1.0f;
+    uint sphereIndex = PrimitiveIndex();
+    float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
+    
+    float4 sphere = (sphereIndex == 0) ? sphere1 : sphere2;
+    float3 center = sphere.xyz;
+    float radius = sphere.w;
+    
+    
+    float3 rayOrigin = WorldRayOrigin();
+    float3 rayDir = WorldRayDirection();
+    
+    float3 oc = rayOrigin - center;
+    float a = dot(rayDir, rayDir);
+    float b = 2.0f * dot(oc, rayDir);
+    float c = dot(oc, oc) - radius * radius;
+    float discriminant = b * b - 4.0f * a * c;
+
+    if (discriminant < 0.0f)
+        return;
+
+    float sqrtDisc = sqrt(discriminant);
+    float t0 = (-b - sqrtDisc) / (2.0f * a);
+    float t1 = (-b + sqrtDisc) / (2.0f * a);
+
+    float t = (t0 > 0) ? t0 : t1;
+    
     uint hitKind = 0; //user defined
     MyAttributes attr;
-    ReportHit(distance, hitKind, attr);
+    //if (sphereIndex == 2)
+        ReportHit(t, hitKind, attr);
 }
 
 [shader("closesthit")]
 void SphereClosestHitShader(inout RayPayload payload, in MyAttributes attr)
 {
-    payload.color = float4(0, 1, 0, 1);
+    payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
 }
 
 #endif // RAYTRACING_HLSL
