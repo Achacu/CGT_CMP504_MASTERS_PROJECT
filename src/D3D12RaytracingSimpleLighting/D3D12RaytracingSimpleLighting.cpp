@@ -458,17 +458,25 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     AllocateUploadBuffer(device, indices, sizeof(indices), &m_indexBuffer.resource);
     AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
 
+    
     //TESTING
     //class Ellipsoid :
     //center:  mi.Point3f = mi.Point3f(0)
     //    radii : mi.Vector3f = mi.Vector3f(0)
     //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
+    float angle = 45 * 3.1416 / 180;    
     Sphere spheres[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.1f, 0.1f), XMFLOAT4(0,0,0,0)},
-        { XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0)},
-        { XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0)},
+        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.1f, 1.1f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
+                                                                                               sin(angle),cos(angle),0,
+                                                                                               0,0,1)},
+        { XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
+                                                                                               0,1,0, 
+                                                                                               0,0,1) },
+        { XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
+                                                                                               0,1,0, 
+                                                                                               0,0,1) },
     };    
     for (int i = 0; i < ARRAYSIZE(spheres); i++)
     {

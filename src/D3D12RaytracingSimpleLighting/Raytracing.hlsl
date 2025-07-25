@@ -183,19 +183,16 @@ void SphereIntersectionShader()
     uint sphereIndex = PrimitiveIndex();
     Sphere s = Spheres[sphereIndex];
     //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
-    float3 ro = WorldRayOrigin();
-    float3 rd = WorldRayDirection();
+    float3 ro = mul(transpose(s.rot), WorldRayOrigin() - s.center);
+    float3 rd = mul(transpose(s.rot), WorldRayDirection());
     
     float3 rdN = rd / s.radii;
-    float3 roN = (ro - s.center) / s.radii;
+    float3 roN = ro / s.radii;
     
     float a = dot(rdN, rdN);
-    float b = 2*dot(roN, rdN);
+    float b = 2 * dot(roN, rdN);
     float c = dot(roN, roN) - 1.0f;
     
-    float discriminant = b * b - 4.0f * a * c;
-    if (discriminant < 0.0f)
-        return;
     //float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
     //float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
     
@@ -211,20 +208,19 @@ void SphereIntersectionShader()
     //float a = dot(rayDir, rayDir);
     //float b = 2.0f * dot(oc, rayDir);
     //float c = dot(oc, oc) - radii * radii;
-    //float discriminant = b * b - 4.0f * a * c;
 
-    //if (discriminant < 0.0f)
-    //    return;
+    float discriminant = b * b - 4.0f * a * c;
+    if (discriminant < 0.0f)
+        return;
 
-    //float sqrtDisc = sqrt(discriminant);
-    //float t0 = (-b - sqrtDisc) / (2.0f * a);
-    //float t1 = (-b + sqrtDisc) / (2.0f * a);
+    float sqrtDisc = sqrt(discriminant);
+    float t0 = (-b - sqrtDisc) / (2.0f * a);
+    float t1 = (-b + sqrtDisc) / (2.0f * a);
 
-    //float t = (t0 > 0) ? t0 : t1;
+    float t = (t0 > 0) ? t0 : t1;
     
     uint hitKind = 0; //user defined
     MyAttributes attr;
-    float t = 1;
     //if (sphereIndex == 2)
     ReportHit(t, hitKind, attr);
 }
@@ -232,7 +228,8 @@ void SphereIntersectionShader()
 [shader("closesthit")]
 void SphereClosestHitShader(inout RayPayload payload, in MyAttributes attr)
 {
-    payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
+    MyClosestHitShader(payload, attr);
+    //payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
 }
 
 #endif // RAYTRACING_HLSL
