@@ -22,6 +22,10 @@ struct Sphere
     float4 quat;
     float3x3 rot;
 };
+struct EllipsoidAttr
+{
+    float3 normal;
+};
 
 
 RaytracingAccelerationStructure Scene : register(t0, space0);
@@ -183,15 +187,15 @@ void SphereIntersectionShader()
     uint sphereIndex = PrimitiveIndex();
     Sphere s = Spheres[sphereIndex];
     //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
-    float3 ro = mul(transpose(s.rot), WorldRayOrigin() - s.center);
+    float3 r0 = mul(transpose(s.rot), WorldRayOrigin() - s.center);
     float3 rd = mul(transpose(s.rot), WorldRayDirection());
     
     float3 rdN = rd / s.radii;
-    float3 roN = ro / s.radii;
+    float3 r0N = r0 / s.radii;
     
     float a = dot(rdN, rdN);
-    float b = 2 * dot(roN, rdN);
-    float c = dot(roN, roN) - 1.0f;
+    float b = 2 * dot(r0N, rdN);
+    float c = dot(r0N, r0N) - 1.0f;
     
     //float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
     //float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
@@ -220,16 +224,29 @@ void SphereIntersectionShader()
     float t = (t0 > 0) ? t0 : t1;
     
     uint hitKind = 0; //user defined
-    MyAttributes attr;
+    EllipsoidAttr attr;
     //if (sphereIndex == 2)
+    float3 pos = r0 + t * rd;
+    attr.normal = normalize(2 * (pos / s.radii) - 1);
     ReportHit(t, hitKind, attr);
+        
 }
 
 [shader("closesthit")]
-void SphereClosestHitShader(inout RayPayload payload, in MyAttributes attr)
+void SphereClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
 {
-    MyClosestHitShader(payload, attr);
     //payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
+    float3 hitPosition = HitWorldPosition();
+
+    // Compute the triangle's normal.
+    // This is redundant and done for illustration purposes 
+    // as all the per-vertex normals are the same and match triangle's normal in this sample. 
+    float3 triangleNormal = attr.normal; //HitAttribute(vertexNormals, attr);
+
+    float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
+    float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
+
+    payload.color = float4(attr.normal, 1); //color;
 }
 
 #endif // RAYTRACING_HLSL

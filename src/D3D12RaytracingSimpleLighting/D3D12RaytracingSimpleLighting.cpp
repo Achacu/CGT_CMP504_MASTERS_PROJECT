@@ -304,7 +304,7 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     // Defines the maximum sizes in bytes for the ray payload and attribute structure.
     auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
     UINT payloadSize = sizeof(XMFLOAT4);    // float4 pixelColor
-    UINT attributeSize = sizeof(XMFLOAT2);  // float2 barycentrics
+    UINT attributeSize = sizeof(XMFLOAT3);  // float3 ellipsoid normals DEBUGGING
     shaderConfig->Config(payloadSize, attributeSize);
 
     // Local root signature and shader association
