@@ -378,7 +378,10 @@ std::vector<D3D12_RAYTRACING_AABB> aabbs;
 struct Sphere
 {
     XMFLOAT3 center;
-    float radius;
+    //float radius;
+    XMFLOAT3 radii;
+    XMFLOAT4 quat;
+    XMFLOAT3X3 rot;
 };
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
@@ -456,22 +459,29 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
 
     //TESTING
+    //class Ellipsoid :
+    //center:  mi.Point3f = mi.Point3f(0)
+    //    radii : mi.Vector3f = mi.Vector3f(0)
+    //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
+    //    rot : mi.Matrix3f = mi.Matrix3f(0)
     Sphere spheres[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), 1.0f },
-        { XMFLOAT3(4.0f, 0.0f, 0.0f), 0.5f },
-        { XMFLOAT3(4.0f, 1.0f, 0.0f), 0.5f },
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.1f, 0.1f), XMFLOAT4(0,0,0,0)},
+        { XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0)},
+        { XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0)},
     };    
     for (int i = 0; i < ARRAYSIZE(spheres); i++)
     {
         Sphere& s = spheres[i];
+        float maxDim = max(max(s.radii.x, s.radii.y), s.radii.z);
         D3D12_RAYTRACING_AABB aabb;
-        aabb.MinX = s.center.x - s.radius;
-        aabb.MinY = s.center.y - s.radius;
-        aabb.MinZ = s.center.z - s.radius;
-        aabb.MaxX = s.center.x + s.radius;
-        aabb.MaxY = s.center.y + s.radius;
-        aabb.MaxZ = s.center.z + s.radius;
+        
+        aabb.MinX = s.center.x - maxDim;
+        aabb.MinY = s.center.y - maxDim;
+        aabb.MinZ = s.center.z - maxDim;
+        aabb.MaxX = s.center.x + maxDim;
+        aabb.MaxY = s.center.y + maxDim;
+        aabb.MaxZ = s.center.z + maxDim;
 
         aabbs.push_back(aabb);
     }

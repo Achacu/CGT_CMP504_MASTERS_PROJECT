@@ -16,8 +16,11 @@
 #include "RaytracingHlslCompat.h"
 struct Sphere
 {
-    XMFLOAT3 center;
-    float radius;
+    float3 center;
+    //float radius;
+    float3 radii;
+    float4 quat;
+    float3x3 rot;
 };
 
 
@@ -25,7 +28,7 @@ RaytracingAccelerationStructure Scene : register(t0, space0);
 RWTexture2D<float4> RenderTarget : register(u0);
 ByteAddressBuffer Indices : register(t1, space0);
 StructuredBuffer<Vertex> Vertices : register(t2, space0);
-StructuredBuffer<Sphere> Spheres: register(t3, space0); //(center.xyz, radius)
+StructuredBuffer<Sphere> Spheres: register(t3, space0);
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
@@ -178,36 +181,52 @@ void MyMissShader(inout RayPayload payload)
 void SphereIntersectionShader()
 {
     uint sphereIndex = PrimitiveIndex();
-    float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
+    Sphere s = Spheres[sphereIndex];
+    //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
+    float3 ro = WorldRayOrigin();
+    float3 rd = WorldRayDirection();
     
-    Sphere sphere = Spheres[sphereIndex]; //(sphereIndex == 0) ? sphere1 : sphere2;
-    float3 center = sphere.center;
-    float radius = sphere.radius;
+    float3 rdN = rd / s.radii;
+    float3 roN = (ro - s.center) / s.radii;
     
+    float a = dot(rdN, rdN);
+    float b = 2*dot(roN, rdN);
+    float c = dot(roN, roN) - 1.0f;
     
-    float3 rayOrigin = WorldRayOrigin();
-    float3 rayDir = WorldRayDirection();
-    
-    float3 oc = rayOrigin - center;
-    float a = dot(rayDir, rayDir);
-    float b = 2.0f * dot(oc, rayDir);
-    float c = dot(oc, oc) - radius * radius;
     float discriminant = b * b - 4.0f * a * c;
-
     if (discriminant < 0.0f)
         return;
+    //float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    //float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
+    
+    //Sphere sphere = Spheres[sphereIndex]; //(sphereIndex == 0) ? sphere1 : sphere2;
+    //float3 center = sphere.center;
+    //float radii = sphere.radii;
+    
+    
+    //float3 rayOrigin = WorldRayOrigin();
+    //float3 rayDir = WorldRayDirection();
+    
+    //float3 oc = rayOrigin - center;
+    //float a = dot(rayDir, rayDir);
+    //float b = 2.0f * dot(oc, rayDir);
+    //float c = dot(oc, oc) - radii * radii;
+    //float discriminant = b * b - 4.0f * a * c;
 
-    float sqrtDisc = sqrt(discriminant);
-    float t0 = (-b - sqrtDisc) / (2.0f * a);
-    float t1 = (-b + sqrtDisc) / (2.0f * a);
+    //if (discriminant < 0.0f)
+    //    return;
 
-    float t = (t0 > 0) ? t0 : t1;
+    //float sqrtDisc = sqrt(discriminant);
+    //float t0 = (-b - sqrtDisc) / (2.0f * a);
+    //float t1 = (-b + sqrtDisc) / (2.0f * a);
+
+    //float t = (t0 > 0) ? t0 : t1;
     
     uint hitKind = 0; //user defined
     MyAttributes attr;
+    float t = 1;
     //if (sphereIndex == 2)
-        ReportHit(t, hitKind, attr);
+    ReportHit(t, hitKind, attr);
 }
 
 [shader("closesthit")]
