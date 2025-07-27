@@ -20,7 +20,7 @@ struct Ellipsoid
     //float radius;
     float3 radii;
     float4 quat;
-    float3x3 rot;
+    matrix rot;
 };
 struct EllipsoidAttr
 {
@@ -186,8 +186,8 @@ void EllipsoidIntersectionShader()
     uint ellipsoidIndex = PrimitiveIndex();
     Ellipsoid s = Ellipsoids[ellipsoidIndex];
     //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
-    float3 r0 = mul(transpose(s.rot), WorldRayOrigin() - s.center);
-    float3 rd = mul(transpose(s.rot), WorldRayDirection());
+    float3 r0 = mul((float3x3)transpose(s.rot), WorldRayOrigin() - s.center);
+    float3 rd = mul((float3x3)transpose(s.rot), WorldRayDirection());
     
     float3 rdN = rd / s.radii;
     float3 r0N = r0 / s.radii;
@@ -258,6 +258,12 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     //float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
     float3 P1 = WorldRayOrigin() + attr.tIn * WorldRayDirection();
     float3 P2 = WorldRayOrigin() + attr.tOut * WorldRayDirection();
+    
+    //convert points to local space
+    Ellipsoid e = Ellipsoids[PrimitiveIndex()];
+    P1 = mul((float3x3)transpose(e.rot), P1 - e.center) / e.radii;
+    P2 = mul((float3x3)transpose(e.rot), P2 - e.center) / e.radii;
+    
     float3 deltaP = P2 - P1;
     
     //float acc = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z

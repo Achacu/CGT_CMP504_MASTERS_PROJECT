@@ -381,7 +381,7 @@ struct Ellipsoid
     //float radius;
     XMFLOAT3 radii;
     XMFLOAT4 quat;
-    XMFLOAT3X3 rot;
+    Matrix rot;
 };
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
@@ -465,12 +465,13 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    radii : mi.Vector3f = mi.Vector3f(0)
     //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
-    float angle = 0;// 45 * 3.1416 / 180;
+    float angle = 90 * 3.1416 / 180;
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1,1,0.5), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.3,1.2,0.5), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0) //around sides,up,otherside axis
+        /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
-                                                                                               0,0,1)},
+                                                                                               0,0,1)*/},
         //{ XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
         //                                                                                       0,1,0, 
         //                                                                                       0,0,1) },
@@ -694,7 +695,7 @@ void D3D12RaytracingSimpleLighting::OnUpdate()
     // Rotate the camera around Y axis.
     {
         float secondsToRotateAround = 24.0f;
-        float angleToRotateBy = 360.0f * (elapsedTime / secondsToRotateAround); //DEBUGGING
+        float angleToRotateBy = 2* 360.0f * (elapsedTime / secondsToRotateAround); //DEBUGGING
         XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(angleToRotateBy));
         m_eye = XMVector3Transform(m_eye, rotate);
         m_up = XMVector3Transform(m_up, rotate);
