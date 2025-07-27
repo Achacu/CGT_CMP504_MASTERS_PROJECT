@@ -468,7 +468,7 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     float angle = 45 * 3.1416 / 180;
     Sphere spheres[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5, 0.7, 0.5f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1,0.1,1), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)},
         //{ XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 

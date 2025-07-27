@@ -15,6 +15,10 @@
 #include "StepTimer.h"
 #include "RaytracingHlslCompat.h"
 
+#include "SimpleMath.h"
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
+
 namespace GlobalRootSignatureParams {
     enum Value {
         OutputViewSlot = 0,

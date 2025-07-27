@@ -255,7 +255,7 @@ void SphereClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
     float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
 
-    payload.color = float4((attr.normal.yyy+1)*0.5f, 1); //color;
+    payload.color = float4((attr.normal+1)*0.5f, 1); //color;
 }
 
 #endif // RAYTRACING_HLSL
