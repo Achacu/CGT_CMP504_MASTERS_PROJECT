@@ -25,6 +25,8 @@ struct Ellipsoid
 struct EllipsoidAttr
 {
     float3 normal;
+    float tIn;
+    float tOut;
 };
 
 
@@ -76,10 +78,7 @@ struct RayPayload
 };
 
 // Retrieve hit world position.
-float3 HitWorldPosition()
-{
-    return WorldRayOrigin() + RayTCurrent() * WorldRayDirection();
-}
+float3 HitWorldPosition() { return WorldRayOrigin() + RayTCurrent() * WorldRayDirection(); }
 
 // Retrieve attribute at a hit position interpolated from vertex attributes using the hit's barycentrics.
 float3 HitAttribute(float3 vertexAttribute[3], BuiltInTriangleIntersectionAttributes attr)
@@ -229,6 +228,8 @@ void EllipsoidIntersectionShader()
     float t1 = (-b + sqrtDisc) / (2.0f * a);
 
     float t = (t0 > 0) ? t0 : t1;
+    attr.tIn = t0;
+    attr.tOut = t1;
     
     //if (ellipsoidIndex == 2)
     float3 pos = WorldRayOrigin() + t * WorldRayDirection();
@@ -244,18 +245,19 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
         payload.color = float4(1, 1, 1, 1);
         return;
     }
+   
     //payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
         float3 hitPosition = HitWorldPosition();
 
     // Compute the triangle's normal.
     // This is redundant and done for illustration purposes 
     // as all the per-vertex normals are the same and match triangle's normal in this sample. 
-    float3 triangleNormal = attr.normal; //HitAttribute(vertexNormals, attr);
+    //float3 triangleNormal = attr.normal; //HitAttribute(vertexNormals, attr);
 
-    float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
-    float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
-
-    payload.color = float4((attr.normal+1)*0.5f, 1); //color;
+    //float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
+    //float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
+    float3 color = float3(1, 1, 1) * (attr.tOut - attr.tIn) * 0.5;
+    payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
 }
 
 #endif // RAYTRACING_HLSL

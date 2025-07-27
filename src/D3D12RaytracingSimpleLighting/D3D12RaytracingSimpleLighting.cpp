@@ -304,7 +304,7 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     // Defines the maximum sizes in bytes for the ray payload and attribute structure.
     auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
     UINT payloadSize = sizeof(XMFLOAT4);    // float4 pixelColor
-    UINT attributeSize = sizeof(XMFLOAT3);  // float3 ellipsoid normals DEBUGGING
+    UINT attributeSize = sizeof(XMFLOAT3) + sizeof(XMFLOAT2);  // float3 ellipsoid normals + tIn + tOut DEBUGGING
     shaderConfig->Config(payloadSize, attributeSize);
     
     // Local root signature and shader association
@@ -465,10 +465,10 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    radii : mi.Vector3f = mi.Vector3f(0)
     //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
-    float angle = 45 * 3.1416 / 180;
+    float angle = 0;// 45 * 3.1416 / 180;
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1,0.1,1), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1,1,1), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)},
         //{ XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
@@ -539,7 +539,7 @@ void D3D12RaytracingSimpleLighting::BuildAccelerationStructures()
     // Mark the geometry as opaque. 
     // PERFORMANCE TIP: mark geometry as opaque whenever applicable as it can enable important ray processing optimizations.
     // Note: When rays encounter opaque geometry an any hit shader will not be executed whether it is present or not.
-    geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
+    geometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE; //TODO: mark as transparent: needed for raytracing through multiple primitives
 
     // Get required sizes for an acceleration structure.
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
