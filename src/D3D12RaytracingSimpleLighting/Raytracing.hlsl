@@ -256,7 +256,15 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
 
     //float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
     //float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
-    float3 color = float3(1, 1, 1) * (attr.tOut - attr.tIn) * 0.5;
+    float3 P1 = WorldRayOrigin() + attr.tIn * WorldRayDirection();
+    float3 P2 = WorldRayOrigin() + attr.tOut * WorldRayDirection();
+    float3 deltaP = P2 - P1;
+    
+    //float acc = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
+    float acc = sqrt(dot(deltaP, deltaP)) * (P1.y + 0.5f * deltaP.y); //for f(x,y,z) = y
+    //float acc = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
+    
+    float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/acc * 1.0;
     payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
 }
 
