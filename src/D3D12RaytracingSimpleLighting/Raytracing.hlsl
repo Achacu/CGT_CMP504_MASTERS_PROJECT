@@ -213,9 +213,16 @@ void SphereIntersectionShader()
     //float b = 2.0f * dot(oc, rayDir);
     //float c = dot(oc, oc) - radii * radii;
 
+    EllipsoidAttr attr;
+    uint hitKind = 0; //user defined
+    
     float discriminant = b * b - 4.0f * a * c;
     if (discriminant < 0.0f)
+    {
+        attr.normal = float3(0, 0, 0);
+        ReportHit(1, hitKind, attr);
         return;
+    }
 
     float sqrtDisc = sqrt(discriminant);
     float t0 = (-b - sqrtDisc) / (2.0f * a);
@@ -223,20 +230,22 @@ void SphereIntersectionShader()
 
     float t = (t0 > 0) ? t0 : t1;
     
-    uint hitKind = 0; //user defined
-    EllipsoidAttr attr;
     //if (sphereIndex == 2)
-    float3 pos = r0 + t * rd;
-    attr.normal = normalize(2 * (pos / s.radii) - 1);
-    ReportHit(t, hitKind, attr);
-        
+    float3 pos = WorldRayOrigin() + t * WorldRayDirection();
+    attr.normal = /*normalize(pos - s.center);*/normalize(2 * (pos / (s.radii * s.radii))); //gradient function of x^2/rx^2 + y^2/ry^2 + z^2/rz^2 - 1 = 0
+    ReportHit(t, hitKind, attr);    
 }
 
 [shader("closesthit")]
 void SphereClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
 {
+    if (attr.normal.x == 0)
+    {
+        payload.color = float4(1, 1, 1, 1);
+        return;
+    }
     //payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
-    float3 hitPosition = HitWorldPosition();
+        float3 hitPosition = HitWorldPosition();
 
     // Compute the triangle's normal.
     // This is redundant and done for illustration purposes 
@@ -246,7 +255,7 @@ void SphereClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
     float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
 
-    payload.color = float4(attr.normal, 1); //color;
+    payload.color = float4((attr.normal.yyy+1)*0.5f, 1); //color;
 }
 
 #endif // RAYTRACING_HLSL

@@ -306,7 +306,7 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     UINT payloadSize = sizeof(XMFLOAT4);    // float4 pixelColor
     UINT attributeSize = sizeof(XMFLOAT3);  // float3 ellipsoid normals DEBUGGING
     shaderConfig->Config(payloadSize, attributeSize);
-
+    
     // Local root signature and shader association
     // This is a root signature that enables a shader to have unique arguments that come from shader tables.
     CreateLocalRootSignatureSubobjects(&raytracingPipeline);
@@ -465,18 +465,18 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    radii : mi.Vector3f = mi.Vector3f(0)
     //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
-    float angle = 45 * 3.1416 / 180;    
+    float angle = 45 * 3.1416 / 180;
     Sphere spheres[] =
     {
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT3(1.0f, 0.1f, 1.1f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5, 0.7, 0.5f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)},
-        { XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
-                                                                                               0,1,0, 
-                                                                                               0,0,1) },
-        { XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
-                                                                                               0,1,0, 
-                                                                                               0,0,1) },
+        //{ XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
+        //                                                                                       0,1,0, 
+        //                                                                                       0,0,1) },
+        //{ XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
+        //                                                                                       0,1,0, 
+        //                                                                                       0,0,1) },
     };    
     for (int i = 0; i < ARRAYSIZE(spheres); i++)
     {
