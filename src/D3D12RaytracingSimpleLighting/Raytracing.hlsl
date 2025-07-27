@@ -14,7 +14,7 @@
 
 #define HLSL
 #include "RaytracingHlslCompat.h"
-struct Sphere
+struct Ellipsoid
 {
     float3 center;
     //float radius;
@@ -32,7 +32,7 @@ RaytracingAccelerationStructure Scene : register(t0, space0);
 RWTexture2D<float4> RenderTarget : register(u0);
 ByteAddressBuffer Indices : register(t1, space0);
 StructuredBuffer<Vertex> Vertices : register(t2, space0);
-StructuredBuffer<Sphere> Spheres: register(t3, space0);
+StructuredBuffer<Ellipsoid> Ellipsoids: register(t3, space0);
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
@@ -182,10 +182,10 @@ void MyMissShader(inout RayPayload payload)
 }
 
 [shader("intersection")]
-void SphereIntersectionShader()
+void EllipsoidIntersectionShader()
 {
-    uint sphereIndex = PrimitiveIndex();
-    Sphere s = Spheres[sphereIndex];
+    uint ellipsoidIndex = PrimitiveIndex();
+    Ellipsoid s = Ellipsoids[ellipsoidIndex];
     //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
     float3 r0 = mul(transpose(s.rot), WorldRayOrigin() - s.center);
     float3 rd = mul(transpose(s.rot), WorldRayDirection());
@@ -230,14 +230,14 @@ void SphereIntersectionShader()
 
     float t = (t0 > 0) ? t0 : t1;
     
-    //if (sphereIndex == 2)
+    //if (ellipsoidIndex == 2)
     float3 pos = WorldRayOrigin() + t * WorldRayDirection();
     attr.normal = /*normalize(pos - s.center);*/normalize(2 * (pos / (s.radii * s.radii))); //gradient function of x^2/rx^2 + y^2/ry^2 + z^2/rz^2 - 1 = 0
     ReportHit(t, hitKind, attr);    
 }
 
 [shader("closesthit")]
-void SphereClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
+void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
 {
     if (attr.normal.x == 0)
     {

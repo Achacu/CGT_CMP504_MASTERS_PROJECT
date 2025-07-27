@@ -19,8 +19,8 @@ using namespace DX;
 
 const wchar_t* D3D12RaytracingSimpleLighting::c_hitGroupName = L"MyHitGroup";
 const wchar_t* D3D12RaytracingSimpleLighting::c_raygenShaderName = L"MyRaygenShader";
-const wchar_t* D3D12RaytracingSimpleLighting::c_closestHitShaderName = L"SphereClosestHitShader";//L"MyClosestHitShader";
-const wchar_t* D3D12RaytracingSimpleLighting::c_intersectionShaderName = L"SphereIntersectionShader";
+const wchar_t* D3D12RaytracingSimpleLighting::c_closestHitShaderName = L"EllipsoidClosestHitShader";//L"MyClosestHitShader";
+const wchar_t* D3D12RaytracingSimpleLighting::c_intersectionShaderName = L"EllipsoidIntersectionShader";
 const wchar_t* D3D12RaytracingSimpleLighting::c_missShaderName = L"MyMissShader";
 
 D3D12RaytracingSimpleLighting::D3D12RaytracingSimpleLighting(UINT width, UINT height, std::wstring name) :
@@ -205,14 +205,14 @@ void D3D12RaytracingSimpleLighting::CreateRootSignatures()
         CD3DX12_DESCRIPTOR_RANGE ranges[3]; // Perfomance TIP: Order from most frequent to least frequent.
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);  // 1 output texture
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1);  // 2 static index and vertex buffers
-        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);  // sphere buffer TESTING
+        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);  // ellipsoid buffer
 
         CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignatureParams::Count];
         rootParameters[GlobalRootSignatureParams::OutputViewSlot].InitAsDescriptorTable(1, &ranges[0]);
         rootParameters[GlobalRootSignatureParams::AccelerationStructureSlot].InitAsShaderResourceView(0);
         rootParameters[GlobalRootSignatureParams::SceneConstantSlot].InitAsConstantBufferView(0);
         rootParameters[GlobalRootSignatureParams::VertexBuffersSlot].InitAsDescriptorTable(1, &ranges[1]); 
-        rootParameters[GlobalRootSignatureParams::SphereBuffersSlot].InitAsDescriptorTable(1, &ranges[2]); //TESTING
+        rootParameters[GlobalRootSignatureParams::EllipsoidBufferSlot].InitAsDescriptorTable(1, &ranges[2]); // ellipsoid buffer
         CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
         SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
     }
@@ -362,7 +362,7 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
     // Allocate a heap for 3 descriptors:
     // 2 - vertex and index buffer SRVs
     // 1 - raytracing output texture SRV
-    descriptorHeapDesc.NumDescriptors = 4; //TESTING: had to increment heap size to allow for sphere buffer descriptor
+    descriptorHeapDesc.NumDescriptors = 4; //TESTING: had to increment heap size to allow for ellipsoid buffer descriptor
     descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     descriptorHeapDesc.NodeMask = 0;
@@ -373,9 +373,9 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
 }
 
 // Build geometry used in the sample.
-D3DBuffer sphereAABBsBuffer;
+D3DBuffer ellipsoidAABBsBuffer;
 std::vector<D3D12_RAYTRACING_AABB> aabbs;
-struct Sphere
+struct Ellipsoid
 {
     XMFLOAT3 center;
     //float radius;
@@ -466,7 +466,7 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
     float angle = 45 * 3.1416 / 180;
-    Sphere spheres[] =
+    Ellipsoid ellipsoids[] =
     {
         { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1,0.1,1), XMFLOAT4(0,0,0,0),XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
@@ -478,9 +478,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
         //                                                                                       0,1,0, 
         //                                                                                       0,0,1) },
     };    
-    for (int i = 0; i < ARRAYSIZE(spheres); i++)
+    for (int i = 0; i < ARRAYSIZE(ellipsoids); i++)
     {
-        Sphere& s = spheres[i];
+        Ellipsoid& s = ellipsoids[i];
         float maxDim = max(max(s.radii.x, s.radii.y), s.radii.z);
         D3D12_RAYTRACING_AABB aabb;
         
@@ -494,8 +494,8 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
         aabbs.push_back(aabb);
     }
 
-    AllocateUploadBuffer(device, spheres, sizeof(spheres), &m_sphereBuffer.resource); //to be sent to shader (added to global root signature)
-    AllocateUploadBuffer(device, aabbs.data(), sizeof(D3D12_RAYTRACING_AABB) * aabbs.size(), &sphereAABBsBuffer.resource);
+    AllocateUploadBuffer(device, ellipsoids, sizeof(ellipsoids), &m_ellipsoidBuffer.resource); //to be sent to shader (added to global root signature)
+    AllocateUploadBuffer(device, aabbs.data(), sizeof(D3D12_RAYTRACING_AABB) * aabbs.size(), &ellipsoidAABBsBuffer.resource);
 
     //
 
@@ -503,7 +503,7 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     // Vertex buffer descriptor must follow index buffer descriptor in the descriptor heap.
     UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, sizeof(indices)/4, 0);
     UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, ARRAYSIZE(vertices), sizeof(vertices[0]));
-    UINT a = CreateBufferSRV(&m_sphereBuffer, ARRAYSIZE(spheres), sizeof(spheres[0])); //TESTING
+    UINT a = CreateBufferSRV(&m_ellipsoidBuffer, ARRAYSIZE(ellipsoids), sizeof(ellipsoids[0])); //TESTING
     ThrowIfFalse(descriptorIndexVB == descriptorIndexIB + 1, L"Vertex Buffer descriptor index must follow that of Index Buffer descriptor index!");
 }
 
@@ -532,7 +532,7 @@ void D3D12RaytracingSimpleLighting::BuildAccelerationStructures()
     D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
     geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS;
     geometryDesc.AABBs.AABBCount = static_cast<UINT>(aabbs.size());
-    geometryDesc.AABBs.AABBs.StartAddress = sphereAABBsBuffer.resource->GetGPUVirtualAddress();
+    geometryDesc.AABBs.AABBs.StartAddress = ellipsoidAABBsBuffer.resource->GetGPUVirtualAddress();
     geometryDesc.AABBs.AABBs.StrideInBytes = sizeof(D3D12_RAYTRACING_AABB);
 
 
@@ -740,7 +740,7 @@ void D3D12RaytracingSimpleLighting::DoRaytracing()
         descriptorSetCommandList->SetDescriptorHeaps(1, m_descriptorHeap.GetAddressOf());
         // Set index and successive vertex buffer decriptor tables
         commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::VertexBuffersSlot, m_indexBuffer.gpuDescriptorHandle);
-        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::SphereBuffersSlot, m_sphereBuffer.gpuDescriptorHandle); //TESTING
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::EllipsoidBufferSlot, m_ellipsoidBuffer.gpuDescriptorHandle); //TESTING
         commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::OutputViewSlot, m_raytracingOutputResourceUAVGpuDescriptor);
     };
 

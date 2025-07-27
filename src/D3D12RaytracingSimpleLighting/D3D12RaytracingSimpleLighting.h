@@ -25,7 +25,7 @@ namespace GlobalRootSignatureParams {
         AccelerationStructureSlot,
         SceneConstantSlot,
         VertexBuffersSlot,
-        SphereBuffersSlot,
+        EllipsoidBufferSlot,
         Count,
     };
 }
@@ -95,7 +95,7 @@ private:
     };
     D3DBuffer m_indexBuffer;
     D3DBuffer m_vertexBuffer;
-    D3DBuffer m_sphereBuffer;
+    D3DBuffer m_ellipsoidBuffer;
 
     // Acceleration structure
     ComPtr<ID3D12Resource> m_bottomLevelAccelerationStructure;
