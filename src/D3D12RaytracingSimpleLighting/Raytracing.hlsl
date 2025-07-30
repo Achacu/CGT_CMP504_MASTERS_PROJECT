@@ -17,11 +17,17 @@
 struct Ellipsoid
 {
     float3 center;
-    //float radius;
-    float3 radii;
+    float3 radii; //<= 1
     float4 quat;
     matrix rot;
+    float extent; //scale factor
 };
+struct KernelPrimitive
+{
+    float sigma; //primitive cross section [m^2]
+    float albedo;
+};
+
 struct EllipsoidAttr
 {
     float3 normal;
@@ -35,6 +41,7 @@ RWTexture2D<float4> RenderTarget : register(u0);
 ByteAddressBuffer Indices : register(t1, space0);
 StructuredBuffer<Vertex> Vertices : register(t2, space0);
 StructuredBuffer<Ellipsoid> Ellipsoids: register(t3, space0);
+StructuredBuffer<KernelPrimitive> Kernels: register(t4, space0);
 
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
@@ -189,28 +196,14 @@ void EllipsoidIntersectionShader()
     float3 r0 = mul((float3x3)transpose(s.rot), WorldRayOrigin() - s.center);
     float3 rd = mul((float3x3)transpose(s.rot), WorldRayDirection());
     
-    float3 rdN = rd / s.radii;
-    float3 r0N = r0 / s.radii;
+    float3 scale = s.radii * s.extent;
+    
+    float3 rdN = rd / scale;
+    float3 r0N = r0 / scale;
     
     float a = dot(rdN, rdN);
     float b = 2 * dot(r0N, rdN);
-    float c = dot(r0N, r0N) - 1.0f;
-    
-    //float4 sphere1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    //float4 sphere2 = float4(4.0f, 0.0f, 0.0f, 0.5f);
-    
-    //Sphere sphere = Spheres[sphereIndex]; //(sphereIndex == 0) ? sphere1 : sphere2;
-    //float3 center = sphere.center;
-    //float radii = sphere.radii;
-    
-    
-    //float3 rayOrigin = WorldRayOrigin();
-    //float3 rayDir = WorldRayDirection();
-    
-    //float3 oc = rayOrigin - center;
-    //float a = dot(rayDir, rayDir);
-    //float b = 2.0f * dot(oc, rayDir);
-    //float c = dot(oc, oc) - radii * radii;
+    float c = dot(r0N, r0N) - 1.0f;   
 
     EllipsoidAttr attr;
     uint hitKind = 0; //user defined
@@ -219,7 +212,7 @@ void EllipsoidIntersectionShader()
     if (discriminant < 0.0f)
     {
         attr.normal = float3(0, 0, 0);
-        ReportHit(1, hitKind, attr);
+        ReportHit(1, hitKind, attr); //debug: shows AABB
         return;
     }
 
@@ -261,8 +254,9 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     
     //convert points to local space
     Ellipsoid e = Ellipsoids[PrimitiveIndex()];
-    P1 = mul((float3x3)transpose(e.rot), P1 - e.center) / e.radii;
-    P2 = mul((float3x3)transpose(e.rot), P2 - e.center) / e.radii;
+    float3 scale = e.radii * e.extent;
+    P1 = mul((float3x3)transpose(e.rot), P1 - e.center) / scale;
+    P2 = mul((float3x3)transpose(e.rot), P2 - e.center) / scale;
     
     float3 deltaP = P2 - P1;
     
@@ -270,7 +264,7 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     float acc = sqrt(dot(deltaP, deltaP)) * (P1.y + 0.5f * deltaP.y); //for f(x,y,z) = y
     //float acc = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
     
-    float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/acc * 1.0;
+    float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/acc /** Kernels[PrimitiveIndex()].sigma*/;
     payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
 }
 

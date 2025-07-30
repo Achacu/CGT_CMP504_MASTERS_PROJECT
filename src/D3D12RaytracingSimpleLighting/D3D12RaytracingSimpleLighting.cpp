@@ -202,10 +202,11 @@ void D3D12RaytracingSimpleLighting::CreateRootSignatures()
     // Global Root Signature
     // This is a root signature that is shared across all raytracing shaders invoked during a DispatchRays() call.
     {
-        CD3DX12_DESCRIPTOR_RANGE ranges[3]; // Perfomance TIP: Order from most frequent to least frequent.
+        CD3DX12_DESCRIPTOR_RANGE ranges[4]; // Perfomance TIP: Order from most frequent to least frequent.
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);  // 1 output texture
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 1);  // 2 static index and vertex buffers
         ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);  // ellipsoid buffer
+        ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 4);  // kernel primitive buffer
 
         CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignatureParams::Count];
         rootParameters[GlobalRootSignatureParams::OutputViewSlot].InitAsDescriptorTable(1, &ranges[0]);
@@ -213,6 +214,7 @@ void D3D12RaytracingSimpleLighting::CreateRootSignatures()
         rootParameters[GlobalRootSignatureParams::SceneConstantSlot].InitAsConstantBufferView(0);
         rootParameters[GlobalRootSignatureParams::VertexBuffersSlot].InitAsDescriptorTable(1, &ranges[1]); 
         rootParameters[GlobalRootSignatureParams::EllipsoidBufferSlot].InitAsDescriptorTable(1, &ranges[2]); // ellipsoid buffer
+        rootParameters[GlobalRootSignatureParams::KernelPrimitiveBufferSlot].InitAsDescriptorTable(1, &ranges[3]); // kernel primitive buffer
         CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
         SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
     }
@@ -362,7 +364,7 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
     // Allocate a heap for 3 descriptors:
     // 2 - vertex and index buffer SRVs
     // 1 - raytracing output texture SRV
-    descriptorHeapDesc.NumDescriptors = 4; //TESTING: had to increment heap size to allow for ellipsoid buffer descriptor
+    descriptorHeapDesc.NumDescriptors = 5; //TESTING: had to increment heap size to allow for ellipsoid + primitive kernel buffer descriptors
     descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     descriptorHeapDesc.NodeMask = 0;
@@ -378,10 +380,15 @@ std::vector<D3D12_RAYTRACING_AABB> aabbs;
 struct Ellipsoid
 {
     XMFLOAT3 center;
-    //float radius;
-    XMFLOAT3 radii;
+    XMFLOAT3 radii; //radii <= 1 
     XMFLOAT4 quat;
     Matrix rot;
+    float extent; //scale factor
+};
+struct KernelPrimitive
+{
+    float sigma; //cross section
+    float albedo; //computed from pdf???
 };
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
@@ -468,7 +475,7 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     float angle = 90 * 3.1416 / 180;
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.3,1.2,0.5), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0) //around sides,up,otherside axis
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.3,1.2,0.5), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 0.5f //around sides,up,otherside axis
         /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)*/},
@@ -478,11 +485,17 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
         //{ XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
         //                                                                                       0,1,0, 
         //                                                                                       0,0,1) },
-    };    
+    };
+    KernelPrimitive kernels[] =
+    {
+        {1.0f, 1.0f/*XMFLOAT3X3(1,1,1,
+                          1,1,1,
+                          1,1,1)*/},
+    };
     for (int i = 0; i < ARRAYSIZE(ellipsoids); i++)
     {
         Ellipsoid& s = ellipsoids[i];
-        float maxDim = max(max(s.radii.x, s.radii.y), s.radii.z);
+        float maxDim = max(max(s.radii.x, s.radii.y), s.radii.z) * s.extent;
         D3D12_RAYTRACING_AABB aabb;
         
         aabb.MinX = s.center.x - maxDim;
@@ -496,15 +509,17 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     }
 
     AllocateUploadBuffer(device, ellipsoids, sizeof(ellipsoids), &m_ellipsoidBuffer.resource); //to be sent to shader (added to global root signature)
-    AllocateUploadBuffer(device, aabbs.data(), sizeof(D3D12_RAYTRACING_AABB) * aabbs.size(), &ellipsoidAABBsBuffer.resource);
+    AllocateUploadBuffer(device, kernels, sizeof(kernels), &m_kernelPrimitiveBuffer.resource); //to be sent to shader (added to global root signature)
+    AllocateUploadBuffer(device, aabbs.data(), sizeof(D3D12_RAYTRACING_AABB) * aabbs.size(), &ellipsoidAABBsBuffer.resource); //used when constructing BLAS
 
     //
+    UINT descriptorIndexEB = CreateBufferSRV(&m_ellipsoidBuffer, ARRAYSIZE(ellipsoids), sizeof(ellipsoids[0])); //TESTING
+    UINT descriptorIndexKPB = CreateBufferSRV(&m_kernelPrimitiveBuffer, ARRAYSIZE(kernels), sizeof(kernels[0])); //TESTING
 
     // Vertex buffer is passed to the shader along with index buffer as a descriptor table.
     // Vertex buffer descriptor must follow index buffer descriptor in the descriptor heap.
     UINT descriptorIndexIB = CreateBufferSRV(&m_indexBuffer, sizeof(indices)/4, 0);
     UINT descriptorIndexVB = CreateBufferSRV(&m_vertexBuffer, ARRAYSIZE(vertices), sizeof(vertices[0]));
-    UINT a = CreateBufferSRV(&m_ellipsoidBuffer, ARRAYSIZE(ellipsoids), sizeof(ellipsoids[0])); //TESTING
     ThrowIfFalse(descriptorIndexVB == descriptorIndexIB + 1, L"Vertex Buffer descriptor index must follow that of Index Buffer descriptor index!");
 }
 
@@ -742,6 +757,7 @@ void D3D12RaytracingSimpleLighting::DoRaytracing()
         // Set index and successive vertex buffer decriptor tables
         commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::VertexBuffersSlot, m_indexBuffer.gpuDescriptorHandle);
         commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::EllipsoidBufferSlot, m_ellipsoidBuffer.gpuDescriptorHandle); //TESTING
+        commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::KernelPrimitiveBufferSlot, m_kernelPrimitiveBuffer.gpuDescriptorHandle); //TESTING
         commandList->SetComputeRootDescriptorTable(GlobalRootSignatureParams::OutputViewSlot, m_raytracingOutputResourceUAVGpuDescriptor);
     };
 
