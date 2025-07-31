@@ -10,12 +10,12 @@
 //*********************************************************
 
 #pragma once
+
 // Note that while ComPtr is used to manage the lifetime of resources on the CPU,
 // it has no understanding of the lifetime of resources on the GPU. Apps must account
 // for the GPU lifetime of resources to avoid destroying objects that may still be
 // referenced by the GPU.
 using Microsoft::WRL::ComPtr;
-#include <fstream>
 
 class HrException : public std::runtime_error
 {
@@ -191,9 +191,6 @@ inline Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(
     return byteCode;
 }
 #endif
-//--------------------------------------------------------------------------------------------------
-// Compile a HLSL file into a DXIL library
-//
 
 // Resets all elements in a ComPtr array.
 template<class T>

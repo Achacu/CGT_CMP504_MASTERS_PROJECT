@@ -10,7 +10,6 @@
 //*********************************************************
 
 #pragma once
-#include <dxcapi.h>
 
 #include "DXSample.h"
 #include "StepTimer.h"
@@ -75,11 +74,6 @@ private:
     ComPtr<ID3D12GraphicsCommandList5> m_dxrCommandList;
     ComPtr<ID3D12StateObject> m_dxrStateObject;
 
-    //Compute shader
-    ComPtr<ID3DBlob> computeShaderBlob;
-    ComPtr<ID3DBlob> errorBlob;
-
-
     // Root signatures
     ComPtr<ID3D12RootSignature> m_raytracingGlobalRootSignature;
     ComPtr<ID3D12RootSignature> m_raytracingLocalRootSignature;
@@ -130,8 +124,6 @@ private:
     XMVECTOR m_eye;
     XMVECTOR m_at;
     XMVECTOR m_up;
-
-    IDxcBlob* CompileShaderLibrary(LPCWSTR fileName, LPCWSTR entryPoint = L"", LPCWSTR targetProfile = L"lib_6_5");
 
     void UpdateCameraMatrices();
     void InitializeScene();

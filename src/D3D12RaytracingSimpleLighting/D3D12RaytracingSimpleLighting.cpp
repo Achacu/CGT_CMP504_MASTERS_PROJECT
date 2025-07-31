@@ -8,7 +8,6 @@
 // PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
 //
 //*********************************************************
-#pragma once
 
 #include "stdafx.h"
 #include "D3D12RaytracingSimpleLighting.h"
@@ -59,7 +58,6 @@ void D3D12RaytracingSimpleLighting::OnInit()
     CreateDeviceDependentResources();
     CreateWindowSizeDependentResources();
 }
-
 
 // Update camera matrices passed into the shader.
 void D3D12RaytracingSimpleLighting::UpdateCameraMatrices()
@@ -259,115 +257,11 @@ void D3D12RaytracingSimpleLighting::CreateLocalRootSignatureSubobjects(CD3DX12_S
     }
 }
 
-
-IDxcBlob* D3D12RaytracingSimpleLighting::CompileShaderLibrary(LPCWSTR fileName, LPCWSTR entryPoint, LPCWSTR targetProfile)
-{
-    static IDxcCompiler* pCompiler = nullptr;
-    static IDxcLibrary* pLibrary = nullptr;
-    static IDxcIncludeHandler* dxcIncludeHandler;
-
-    HRESULT hr;
-
-    // Initialize the DXC compiler and compiler helper
-    if (!pCompiler)
-    {
-        ThrowIfFailed(DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), (void**)&pCompiler));
-        ThrowIfFailed(DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), (void**)&pLibrary));
-        ThrowIfFailed(pLibrary->CreateIncludeHandler(&dxcIncludeHandler));
-    }
-    // Open and read the file
-    std::ifstream shaderFile(fileName);
-    if (shaderFile.good() == false)
-    {
-        throw std::logic_error("Cannot find shader file");
-    }
-    std::stringstream strStream;
-    strStream << shaderFile.rdbuf();
-    std::string sShader = strStream.str();
-
-    // Create blob from the string
-    IDxcBlobEncoding* pTextBlob;
-    ThrowIfFailed(pLibrary->CreateBlobWithEncodingFromPinned(
-        (LPBYTE)sShader.c_str(), (uint32_t)sShader.size(), 0, &pTextBlob));
-
-    LPCWSTR* arguments = nullptr;
-    UINT32 argumentsSize = 0;
-
-    //#ifdef DEBUG
-    std::vector<LPCWSTR> argList = {
-        L"-Zi",            // Debug info
-        L"-Od",            // Disable optimizations
-        L"-Qembed_debug",  // Embed debug info in the .cso
-        L"-D", L"DEBUG"    // Optional: define DEBUG macro
-    };
-    arguments = argList.data();
-    argumentsSize = static_cast<UINT32>(argList.size());
-    //#endif
-
-        // Compile
-    IDxcOperationResult* pResult;
-    ThrowIfFailed(pCompiler->Compile(
-        pTextBlob,
-        fileName,
-        entryPoint,
-        targetProfile,
-        arguments,
-        argumentsSize,
-        nullptr,
-        0,
-        dxcIncludeHandler,
-        &pResult
-    ));
-
-    // Verify the result
-    HRESULT resultCode;
-    ThrowIfFailed(pResult->GetStatus(&resultCode));
-    if (FAILED(resultCode))
-    {
-        IDxcBlobEncoding* pError;
-        hr = pResult->GetErrorBuffer(&pError);
-        if (FAILED(hr))
-        {
-            throw std::logic_error("Failed to get shader compiler error");
-        }
-
-        // Convert error blob to a string
-        std::vector<char> infoLog(pError->GetBufferSize() + 1);
-        memcpy(infoLog.data(), pError->GetBufferPointer(), pError->GetBufferSize());
-        infoLog[pError->GetBufferSize()] = 0;
-
-        std::string errorMsg = "Shader Compiler Error:\n";
-        errorMsg.append(infoLog.data());
-
-        MessageBoxA(nullptr, errorMsg.c_str(), "Error!", MB_OK);
-        throw std::logic_error("Failed compile shader");
-    }
-
-    IDxcBlob* pBlob;
-    ThrowIfFailed(pResult->GetResult(&pBlob));
-    return pBlob;
-}
-
 // Create a raytracing pipeline state object (RTPSO).
 // An RTPSO represents a full set of shaders reachable by a DispatchRays() call,
 // with all configuration options resolved, such as local signatures and other state.
 void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
 {
-    ComPtr<ID3D12PipelineState> m_pipelineState;
-
-    //D3DCompileFromFile(L"InlineRaytracingCS.hlsl", nullptr, nullptr, "main", "cs_6_6",
-    //    D3DCOMPILE_ENABLE_STRICTNESS, 0, &shaderBlob, &errorBlob);
-    //ThrowIfFailed(D3DCompileFromFile(GetAssetFullPath(L"Raytracing.hlsl").c_str(), nullptr, nullptr, "MyComputeShader", "cs_6_3", /*compileFlags*/0, 0, &computeShaderBlob, nullptr));
-    //CompileShaderLibrary(L"CompiledShaders\Raytracing.hlsl.h", L"MyComputeShader", L"cs_6_6");
-
-    D3D12_COMPUTE_PIPELINE_STATE_DESC computePsoDesc = {};
-    computePsoDesc.pRootSignature = m_raytracingGlobalRootSignature.Get();
-    //computePsoDesc.CS = { csBlob.GetAddressOf(), csBlob.}; //assigns compute shader
-    m_dxrDevice->CreateComputePipelineState(&computePsoDesc, IID_PPV_ARGS(&m_pipelineState));
-
-
-    //psoDesc.CS = { reinterpret_cast<BYTE*>(computeShaderBlob->GetBufferPointer()), computeShaderBlob->GetBufferSize() }; //assigns compute shader
-
     // Create 7 subobjects that combine into a RTPSO:
     // Subobjects need to be associated with DXIL exports (i.e. shaders) either by way of default or explicit associations.
     // Default association applies to every exported shader entrypoint that doesn't have any of the same type of subobject associated with it.
@@ -379,66 +273,65 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     // 2 - Local root signature and association
     // 1 - Global root signature
     // 1 - Pipeline config
-    //CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
+    CD3DX12_STATE_OBJECT_DESC raytracingPipeline{ D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
 
-    //// DXIL library
-    //// This contains the shaders and their entrypoints for the state object.
-    //// Since shaders are not considered a subobject, they need to be passed in via DXIL library subobjects.
-    //auto lib = raytracingPipeline.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-    //D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void *)g_pRaytracing, ARRAYSIZE(g_pRaytracing));
-    //lib->SetDXILLibrary(&libdxil);
-    //// Define which shader exports to surface from the library.
-    //// If no shader exports are defined for a DXIL library subobject, all shaders will be surfaced.
-    //// In this sample, this could be ommited for convenience since the sample uses all shaders in the library. 
-    //{
-    //    lib->DefineExport(c_raygenShaderName);
-    //    lib->DefineExport(c_closestHitShaderName);
-    //    lib->DefineExport(c_intersectionShaderName);
-    //    lib->DefineExport(c_missShaderName);
-    //}
-    //
-    //// Triangle hit group
-    //// A hit group specifies closest hit, any hit and intersection shaders to be executed when a ray intersects the geometry's triangle/AABB.
-    //// In this sample, we only use triangle geometry with a closest hit shader, so others are not set.
-    //auto hitGroup = raytracingPipeline.CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
-    //hitGroup->SetIntersectionShaderImport(c_intersectionShaderName); //procedural geometry needs to be used in Acceleration Structure for a custom intersection shader
-    //hitGroup->SetClosestHitShaderImport(c_closestHitShaderName);
-    //hitGroup->SetHitGroupExport(c_hitGroupName);
-    ////hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES); 
-    //hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE);
-    //
-    //// Shader config
-    //// Defines the maximum sizes in bytes for the ray payload and attribute structure.
-    //auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
-    //UINT payloadSize = sizeof(XMFLOAT4);    // float4 pixelColor
-    //UINT attributeSize = sizeof(XMFLOAT3) + sizeof(XMFLOAT2);  // float3 ellipsoid normals + tIn + tOut DEBUGGING
-    //shaderConfig->Config(payloadSize, attributeSize);
-    //
-    //// Local root signature and shader association
-    //// This is a root signature that enables a shader to have unique arguments that come from shader tables.
-    //CreateLocalRootSignatureSubobjects(&raytracingPipeline);
+    // DXIL library
+    // This contains the shaders and their entrypoints for the state object.
+    // Since shaders are not considered a subobject, they need to be passed in via DXIL library subobjects.
+    auto lib = raytracingPipeline.CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
+    D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void *)g_pRaytracing, ARRAYSIZE(g_pRaytracing));
+    lib->SetDXILLibrary(&libdxil);
+    // Define which shader exports to surface from the library.
+    // If no shader exports are defined for a DXIL library subobject, all shaders will be surfaced.
+    // In this sample, this could be ommited for convenience since the sample uses all shaders in the library. 
+    {
+        lib->DefineExport(c_raygenShaderName);
+        lib->DefineExport(c_closestHitShaderName);
+        lib->DefineExport(c_intersectionShaderName);
+        lib->DefineExport(c_missShaderName);
+    }
+    
+    // Triangle hit group
+    // A hit group specifies closest hit, any hit and intersection shaders to be executed when a ray intersects the geometry's triangle/AABB.
+    // In this sample, we only use triangle geometry with a closest hit shader, so others are not set.
+    auto hitGroup = raytracingPipeline.CreateSubobject<CD3DX12_HIT_GROUP_SUBOBJECT>();
+    hitGroup->SetIntersectionShaderImport(c_intersectionShaderName); //procedural geometry needs to be used in Acceleration Structure for a custom intersection shader
+    hitGroup->SetClosestHitShaderImport(c_closestHitShaderName);
+    hitGroup->SetHitGroupExport(c_hitGroupName);
+    //hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_TRIANGLES); 
+    hitGroup->SetHitGroupType(D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE);
+    
+    // Shader config
+    // Defines the maximum sizes in bytes for the ray payload and attribute structure.
+    auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
+    UINT payloadSize = sizeof(XMFLOAT4);    // float4 pixelColor
+    UINT attributeSize = sizeof(XMFLOAT3) + sizeof(XMFLOAT2);  // float3 ellipsoid normals + tIn + tOut DEBUGGING
+    shaderConfig->Config(payloadSize, attributeSize);
+    
+    // Local root signature and shader association
+    // This is a root signature that enables a shader to have unique arguments that come from shader tables.
+    CreateLocalRootSignatureSubobjects(&raytracingPipeline);
 
-    //// Global root signature
-    //// This is a root signature that is shared across all raytracing shaders invoked during a DispatchRays() call.
-    //auto globalRootSignature = raytracingPipeline.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>();
-    //globalRootSignature->SetRootSignature(m_raytracingGlobalRootSignature.Get());
+    // Global root signature
+    // This is a root signature that is shared across all raytracing shaders invoked during a DispatchRays() call.
+    auto globalRootSignature = raytracingPipeline.CreateSubobject<CD3DX12_GLOBAL_ROOT_SIGNATURE_SUBOBJECT>();
+    globalRootSignature->SetRootSignature(m_raytracingGlobalRootSignature.Get());
 
-    //// Pipeline config
-    //// Defines the maximum TraceRay() recursion depth.
-    //auto pipelineConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_PIPELINE_CONFIG_SUBOBJECT>();
-    //// PERFOMANCE TIP: Set max recursion depth as low as needed 
-    //// as drivers may apply optimization strategies for low recursion depths.
-    //UINT maxRecursionDepth = 1; // ~ primary rays only. 
-    //pipelineConfig->Config(maxRecursionDepth);
+    // Pipeline config
+    // Defines the maximum TraceRay() recursion depth.
+    auto pipelineConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_PIPELINE_CONFIG_SUBOBJECT>();
+    // PERFOMANCE TIP: Set max recursion depth as low as needed 
+    // as drivers may apply optimization strategies for low recursion depths.
+    UINT maxRecursionDepth = 1; // ~ primary rays only. 
+    pipelineConfig->Config(maxRecursionDepth);
 
-//#if _DEBUG
-//    PrintStateObjectDesc(raytracingPipeline);
-//#endif
-//
-//    // Create the state object.
-//    ThrowIfFailed(m_dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&m_dxrStateObject)), L"Couldn't create DirectX Raytracing state object.\n");
+#if _DEBUG
+    PrintStateObjectDesc(raytracingPipeline);
+#endif
 
+    // Create the state object.
+    ThrowIfFailed(m_dxrDevice->CreateStateObject(raytracingPipeline, IID_PPV_ARGS(&m_dxrStateObject)), L"Couldn't create DirectX Raytracing state object.\n");
 }
 
 // Create 2D output texture for raytracing.
