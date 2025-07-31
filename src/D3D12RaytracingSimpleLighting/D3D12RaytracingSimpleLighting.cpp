@@ -475,7 +475,7 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     float angle = 90 * 3.1416 / 180;
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.3,1.2,0.5), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 0.5f //around sides,up,otherside axis
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.3,1.0,0.5), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f //around sides,up,otherside axis
         /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)*/},

@@ -148,38 +148,6 @@ void MyRaygenShader()
     RenderTarget[DispatchRaysIndex().xy] = payload.color;
 }
 
-[shader("closesthit")]
-void MyClosestHitShader(inout RayPayload payload, in MyAttributes attr)
-{
-    float3 hitPosition = HitWorldPosition();
-
-    // Get the base index of the triangle's first 16 bit index.
-    uint indexSizeInBytes = 2;
-    uint indicesPerTriangle = 3;
-    uint triangleIndexStride = indicesPerTriangle * indexSizeInBytes;
-    uint baseIndex = PrimitiveIndex() * triangleIndexStride;
-
-    // Load up 3 16 bit indices for the triangle.
-    const uint3 indices = Load3x16BitIndices(baseIndex);
-
-    // Retrieve corresponding vertex normals for the triangle vertices.
-    float3 vertexNormals[3] = { 
-        Vertices[indices[0]].normal, 
-        Vertices[indices[1]].normal, 
-        Vertices[indices[2]].normal 
-    };
-
-    // Compute the triangle's normal.
-    // This is redundant and done for illustration purposes 
-    // as all the per-vertex normals are the same and match triangle's normal in this sample. 
-    float3 triangleNormal = HitAttribute(vertexNormals, attr);
-
-    float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
-    float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
-
-    payload.color = color;
-}
-
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
@@ -240,29 +208,48 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     }
    
     //payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
-        float3 hitPosition = HitWorldPosition();
 
-    // Compute the triangle's normal.
-    // This is redundant and done for illustration purposes 
-    // as all the per-vertex normals are the same and match triangle's normal in this sample. 
-    //float3 triangleNormal = attr.normal; //HitAttribute(vertexNormals, attr);
-
-    //float4 diffuseColor = CalculateDiffuseLighting(hitPosition, triangleNormal);
-    //float4 color = g_sceneCB.lightAmbientColor + diffuseColor;
-    float3 P1 = WorldRayOrigin() + attr.tIn * WorldRayDirection();
-    float3 P2 = WorldRayOrigin() + attr.tOut * WorldRayDirection();
+    float3 p = WorldRayOrigin() + attr.tIn * WorldRayDirection();
+    float3 p2 = WorldRayOrigin() + attr.tOut * WorldRayDirection();
     
     //convert points to local space
     Ellipsoid e = Ellipsoids[PrimitiveIndex()];
-    float3 scale = e.radii * e.extent;
-    P1 = mul((float3x3)transpose(e.rot), P1 - e.center) / scale;
-    P2 = mul((float3x3)transpose(e.rot), P2 - e.center) / scale;
+    float3 s = e.radii;
+    float3 scale = s * e.extent;
+    p = mul((float3x3)transpose(e.rot), p - e.center)/* / scale*/;
+    p2 = mul((float3x3)transpose(e.rot), p2 - e.center)/* / scale*/;
     
-    float3 deltaP = P2 - P1;
+    float3 w = p2 - p;
+    float t = sqrt(dot(w, w)); //magnitude
+    w /= t; //normalized direction
     
+    
+    float wx2 = w.x * w.x;
+    float wy2 = w.y * w.y;
+    float wz2 = w.z * w.z;
+    
+    float px2 = p.x * p.x;
+    float py2 = p.y * p.y;
+    float pz2 = p.z * p.z;
+    
+    float sx2 = s.x * s.x;
+    float sy2 = s.y * s.y;
+    float sz2 = s.z * s.z;
+    
+    float K1 = 3 * (((px2 - sx2)*sy2 + py2*sx2) * sz2 + pz2 * sx2 * sy2);
+    float K2 = 3 * (p.z*sx2*sy2*w.z + p.y*sx2*sz2*w.y + p.x*sy2*sz2*w.x);
+    float K3 = sx2*sy2*wz2 + sx2*sz2*wy2 + sy2*sz2*wx2;
+    float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2); //15 / (168 * 3.141592f * sqrt(7*7*7) * sx2 * sy2 * sz2);
+    
+    float acc = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);
+    
+    float normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
     //float acc = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
-    float acc = sqrt(dot(deltaP, deltaP)) * (P1.y + 0.5f * deltaP.y); //for f(x,y,z) = y
+    //float acc = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
     //float acc = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
+    acc /= normFactor;
+    
+    
     
     float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/acc /** Kernels[PrimitiveIndex()].sigma*/;
     payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
