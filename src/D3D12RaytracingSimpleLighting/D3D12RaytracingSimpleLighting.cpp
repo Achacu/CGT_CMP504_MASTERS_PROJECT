@@ -305,7 +305,7 @@ void D3D12RaytracingSimpleLighting::CreateRaytracingPipelineStateObject()
     // Shader config
     // Defines the maximum sizes in bytes for the ray payload and attribute structure.
     auto shaderConfig = raytracingPipeline.CreateSubobject<CD3DX12_RAYTRACING_SHADER_CONFIG_SUBOBJECT>();
-    UINT payloadSize = sizeof(XMFLOAT4);    // float4 pixelColor
+    UINT payloadSize = sizeof(XMFLOAT4) + sizeof(float);    // float4 pixelColor, float transmittance
     UINT attributeSize = sizeof(XMFLOAT3) + sizeof(XMFLOAT2);  // float3 ellipsoid normals + tIn + tOut DEBUGGING
     shaderConfig->Config(payloadSize, attributeSize);
     
@@ -472,10 +472,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    radii : mi.Vector3f = mi.Vector3f(0)
     //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
-    float angle = 90 * 3.1416 / 180;
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.3,1.0,0.5), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f //around sides,up,otherside axis
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f //around sides,up,otherside axis
         /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)*/},

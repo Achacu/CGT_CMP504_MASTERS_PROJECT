@@ -46,54 +46,12 @@ StructuredBuffer<KernelPrimitive> Kernels: register(t4, space0);
 ConstantBuffer<SceneConstantBuffer> g_sceneCB : register(b0);
 ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
 
-// Load three 16 bit indices from a byte addressed buffer.
-uint3 Load3x16BitIndices(uint offsetBytes)
-{
-    uint3 indices;
-
-    // ByteAdressBuffer loads must be aligned at a 4 byte boundary.
-    // Since we need to read three 16 bit indices: { 0, 1, 2 } 
-    // aligned at a 4 byte boundary as: { 0 1 } { 2 0 } { 1 2 } { 0 1 } ...
-    // we will load 8 bytes (~ 4 indices { a b | c d }) to handle two possible index triplet layouts,
-    // based on first index's offsetBytes being aligned at the 4 byte boundary or not:
-    //  Aligned:     { 0 1 | 2 - }
-    //  Not aligned: { - 0 | 1 2 }
-    const uint dwordAlignedOffset = offsetBytes & ~3;    
-    const uint2 four16BitIndices = Indices.Load2(dwordAlignedOffset);
- 
-    // Aligned: { 0 1 | 2 - } => retrieve first three 16bit indices
-    if (dwordAlignedOffset == offsetBytes)
-    {
-        indices.x = four16BitIndices.x & 0xffff;
-        indices.y = (four16BitIndices.x >> 16) & 0xffff;
-        indices.z = four16BitIndices.y & 0xffff;
-    }
-    else // Not aligned: { - 0 | 1 2 } => retrieve last three 16bit indices
-    {
-        indices.x = (four16BitIndices.x >> 16) & 0xffff;
-        indices.y = four16BitIndices.y & 0xffff;
-        indices.z = (four16BitIndices.y >> 16) & 0xffff;
-    }
-
-    return indices;
-}
-
 typedef BuiltInTriangleIntersectionAttributes MyAttributes;
 struct RayPayload
 {
     float4 color;
+    float tr; //transmittance
 };
-
-// Retrieve hit world position.
-float3 HitWorldPosition() { return WorldRayOrigin() + RayTCurrent() * WorldRayDirection(); }
-
-// Retrieve attribute at a hit position interpolated from vertex attributes using the hit's barycentrics.
-float3 HitAttribute(float3 vertexAttribute[3], BuiltInTriangleIntersectionAttributes attr)
-{
-    return vertexAttribute[0] +
-        attr.barycentrics.x * (vertexAttribute[1] - vertexAttribute[0]) +
-        attr.barycentrics.y * (vertexAttribute[2] - vertexAttribute[0]);
-}
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
 inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 direction)
@@ -128,6 +86,7 @@ void MyRaygenShader()
 {
     float3 rayDir;
     float3 origin;
+    float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
     
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     GenerateCameraRay(DispatchRaysIndex().xy, origin, rayDir);
@@ -141,9 +100,11 @@ void MyRaygenShader()
     // TMin should be kept small to prevent missing geometry at close contact areas.
     ray.TMin = 0.001;
     ray.TMax = 10000.0;
-    RayPayload payload = { float4(0, 0, 0, 0) };
+    RayPayload payload = { float4(0, 0, 0, 0), 1 };
     TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
 
+    payload.color.rgb = (1 - payload.tr) * float3(1, 1, 1) + (payload.tr) * background.rgb;
+    
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = payload.color;
 }
@@ -241,18 +202,19 @@ void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
     float K3 = sx2*sy2*wz2 + sx2*sz2*wy2 + sy2*sz2*wx2;
     float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2); //15 / (168 * 3.141592f * sqrt(7*7*7) * sx2 * sy2 * sz2);
     
-    float acc = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);
+    float density = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);
     
     float normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
-    //float acc = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
-    //float acc = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
-    //float acc = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
-    acc /= normFactor;
+    //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
+    //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
+    //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
+    density /= normFactor;
     
+    float tr = exp(-density * Kernels[PrimitiveIndex()].sigma); //transmittance
     
-    
-    float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/acc /** Kernels[PrimitiveIndex()].sigma*/;
-    payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
+    payload.tr = tr;
+    //float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/tr /** Kernels[PrimitiveIndex()].sigma*/;
+    //payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
 }
 
 #endif // RAYTRACING_HLSL
