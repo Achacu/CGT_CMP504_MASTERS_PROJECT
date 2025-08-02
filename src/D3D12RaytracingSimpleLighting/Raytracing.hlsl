@@ -25,7 +25,7 @@ struct Ellipsoid
 struct KernelPrimitive
 {
     float sigma; //primitive cross section [m^2]
-    float albedo;
+    float3 albedo;
 };
 
 struct EllipsoidAttr
@@ -148,7 +148,7 @@ void MyRaygenShader()
     ray.Direction = rayDir;
     // Set TMin to a non-zero small value to avoid aliasing issues due to floating - point errors.
     // TMin should be kept small to prevent missing geometry at close contact areas.
-    ray.TMin = 0.001;
+    ray.TMin = 0.0001;
     ray.TMax = 10000.0;
     Intersection intersection;
     RayPayload payload = { intersection, true};
@@ -157,6 +157,7 @@ void MyRaygenShader()
     uint pIndex = 0;
     float tIn = 0;
     float tOut = 0;
+    float3 volColor = float3(0, 0, 0);
     while (payload.hasHit)
     {
         payload.hasHit = false;
@@ -166,14 +167,13 @@ void MyRaygenShader()
             //pIndex = payload.intersection.pIndex;
             //tIn = payload.intersection.tIn;
             //tOut = payload.intersection.tOut;
-            tr *= CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
-            ray.Origin = ray.Origin + rayDir * (payload.intersection.tIn + 0.01f);
-        }
-        pIndex++;
+            float tri = CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
+            volColor += Kernels[payload.intersection.pIndex].albedo * (1-tri);
+            tr *= tri;
+            ray.Origin = ray.Origin + rayDir * payload.intersection.tIn;
+        }   
     }
-
-    float3 color = (1 - tr) * float3(1, 1, 1) + (tr) * background.rgb;
-    
+    float3 color = volColor * (1-tr) + background.rgb * tr;
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = float4(color, 1);
 }

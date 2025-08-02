@@ -388,7 +388,7 @@ struct Ellipsoid
 struct KernelPrimitive
 {
     float sigma; //cross section
-    float albedo; //computed from pdf???
+    XMFLOAT3 albedo; //computed from pdf???
 };
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
@@ -474,9 +474,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f},
-        { XMFLOAT3(0.0f, 0.0f, -2.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f }, //around sides,up,otherside axis
-        { XMFLOAT3(2.0f, 0.0f, -3.0f), XMFLOAT3(1.0f,0.2,0.3), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,60), 2.0f }, //around sides,up,otherside axis
+        { XMFLOAT3(0.5f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,0,0), 1.0f},
+        { XMFLOAT3(-0.5f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,0,0), 1.0f }, //around sides,up,otherside axis
+        //{ XMFLOAT3(2.0f, 0.0f, -3.0f), XMFLOAT3(1.0f,0.2,0.3), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,60), 2.0f }, //around sides,up,otherside axis
         /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
                                                                                                0,0,1)*/
@@ -489,9 +489,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     };
     KernelPrimitive kernels[] =
     {
-        {0.25f, 1.0f},
-        {0.5f, 1.0f},
-        {0.5f, 1.0f},
+        {2.0f, XMFLOAT3(1.0f,0,0)},
+        {2.0f, XMFLOAT3(0,0,1.0f)},
+        //{0.5f, 1.0f},
     };
     for (int i = 0; i < ARRAYSIZE(ellipsoids); i++)
     {
