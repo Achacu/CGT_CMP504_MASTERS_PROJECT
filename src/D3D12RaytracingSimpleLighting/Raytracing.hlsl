@@ -34,6 +34,12 @@ struct EllipsoidAttr
     float tIn;
     float tOut;
 };
+struct Intersection
+{
+    uint pIndex; //primitive index
+    float tIn;
+    float tOut;
+};
 
 
 RaytracingAccelerationStructure Scene : register(t0, space0);
@@ -49,8 +55,8 @@ ConstantBuffer<CubeConstantBuffer> g_cubeCB : register(b1);
 typedef BuiltInTriangleIntersectionAttributes MyAttributes;
 struct RayPayload
 {
-    float4 color;
-    float tr; //transmittance
+    Intersection intersection;
+    bool hasHit;
 };
 
 // Generate a ray in world space for a camera pixel corresponding to an index from the dispatched 2D grid.
@@ -80,6 +86,50 @@ float4 CalculateDiffuseLighting(float3 hitPosition, float3 normal)
 
     return g_cubeCB.albedo * g_sceneCB.lightDiffuseColor * fNDotL;
 }
+float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
+{
+    float3 p = r0 + intersection.tIn * rd;
+    float3 p1 = r0 + intersection.tOut * rd;
+    
+    //convert points to local space
+    Ellipsoid e = Ellipsoids[intersection.pIndex];
+    p = mul((float3x3) transpose(e.rot), p - e.center);
+    p1 = mul((float3x3) transpose(e.rot), p1 - e.center);
+    
+    float3 s = e.radii * e.extent;
+    
+    float3 w = p1 - p;
+    float t = sqrt(dot(w, w)); //magnitude
+    w /= t; //normalized direction
+        
+    float wx2 = w.x * w.x;
+    float wy2 = w.y * w.y;
+    float wz2 = w.z * w.z;
+    
+    float px2 = p.x * p.x;
+    float py2 = p.y * p.y;
+    float pz2 = p.z * p.z;
+    
+    float sx2 = s.x * s.x;
+    float sy2 = s.y * s.y;
+    float sz2 = s.z * s.z;
+    
+    float K1 = 3 * (((px2 - sx2) * sy2 + py2 * sx2) * sz2 + pz2 * sx2 * sy2);
+    float K2 = 3 * (p.z * sx2 * sy2 * w.z + p.y * sx2 * sz2 * w.y + p.x * sy2 * sz2 * w.x);
+    float K3 = sx2 * sy2 * wz2 + sx2 * sz2 * wy2 + sy2 * sz2 * wx2;
+    float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2);
+    
+    float density = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);
+    
+    float normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
+    density /= normFactor;
+    //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
+    //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
+    //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
+    
+    return exp(-density * Kernels[intersection.pIndex].sigma); //transmittance
+}
+
 
 [shader("raygeneration")]
 void MyRaygenShader()
@@ -100,20 +150,40 @@ void MyRaygenShader()
     // TMin should be kept small to prevent missing geometry at close contact areas.
     ray.TMin = 0.001;
     ray.TMax = 10000.0;
-    RayPayload payload = { float4(0, 0, 0, 0), 1 };
-    TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
+    Intersection intersection;
+    RayPayload payload = { intersection, true};
+    
+    float tr = 1; 
+    uint pIndex = 0;
+    float tIn = 0;
+    float tOut = 0;
+    while (payload.hasHit)
+    {
+        payload.hasHit = false;
+        TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
+        if (payload.hasHit)
+        {
+            //pIndex = payload.intersection.pIndex;
+            //tIn = payload.intersection.tIn;
+            //tOut = payload.intersection.tOut;
+            tr *= CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
+            ray.Origin = ray.Origin + rayDir * (payload.intersection.tIn + 0.01f);
+        }
+        pIndex++;
+    }
 
-    payload.color.rgb = (1 - payload.tr) * float3(1, 1, 1) + (payload.tr) * background.rgb;
+    float3 color = (1 - tr) * float3(1, 1, 1) + (tr) * background.rgb;
     
     // Write the raytraced color to the output texture.
-    RenderTarget[DispatchRaysIndex().xy] = payload.color;
+    RenderTarget[DispatchRaysIndex().xy] = float4(color, 1);
 }
 
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
-    float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
-    payload.color = background;
+    //float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
+    //payload.color = background;
+    payload.hasHit = false;
 }
 
 [shader("intersection")]
@@ -133,22 +203,21 @@ void EllipsoidIntersectionShader()
     float a = dot(rdN, rdN);
     float b = 2 * dot(r0N, rdN);
     float c = dot(r0N, r0N) - 1.0f;   
-
+   
     EllipsoidAttr attr;
     uint hitKind = 0; //user defined
     
     float discriminant = b * b - 4.0f * a * c;
     if (discriminant < 0.0f)
-    {
-        attr.normal = float3(0, 0, 0);
-        ReportHit(1, hitKind, attr); //debug: shows AABB
         return;
-    }
 
     float sqrtDisc = sqrt(discriminant);
     float t0 = (-b - sqrtDisc) / (2.0f * a);
     float t1 = (-b + sqrtDisc) / (2.0f * a);
 
+    if (t0 < RayTMin()) //prevents intersection from ray generated inside the ellipsoid
+        return;
+    
     float t = (t0 > 0) ? t0 : t1;
     attr.tIn = t0;
     attr.tOut = t1;
@@ -162,59 +231,10 @@ void EllipsoidIntersectionShader()
 [shader("closesthit")]
 void EllipsoidClosestHitShader(inout RayPayload payload, in EllipsoidAttr attr)
 {
-    if (attr.normal.x == 0)
-    {
-        payload.color = float4(1, 1, 1, 1);
-        return;
-    }
-   
-    //payload.color = float4(PrimitiveIndex() == 0, PrimitiveIndex() == 1, 0, 1);
-
-    float3 p = WorldRayOrigin() + attr.tIn * WorldRayDirection();
-    float3 p2 = WorldRayOrigin() + attr.tOut * WorldRayDirection();
-    
-    //convert points to local space
-    Ellipsoid e = Ellipsoids[PrimitiveIndex()];
-    float3 s = e.radii;
-    float3 scale = s * e.extent;
-    p = mul((float3x3)transpose(e.rot), p - e.center)/* / scale*/;
-    p2 = mul((float3x3)transpose(e.rot), p2 - e.center)/* / scale*/;
-    
-    float3 w = p2 - p;
-    float t = sqrt(dot(w, w)); //magnitude
-    w /= t; //normalized direction
-    
-    
-    float wx2 = w.x * w.x;
-    float wy2 = w.y * w.y;
-    float wz2 = w.z * w.z;
-    
-    float px2 = p.x * p.x;
-    float py2 = p.y * p.y;
-    float pz2 = p.z * p.z;
-    
-    float sx2 = s.x * s.x;
-    float sy2 = s.y * s.y;
-    float sz2 = s.z * s.z;
-    
-    float K1 = 3 * (((px2 - sx2)*sy2 + py2*sx2) * sz2 + pz2 * sx2 * sy2);
-    float K2 = 3 * (p.z*sx2*sy2*w.z + p.y*sx2*sz2*w.y + p.x*sy2*sz2*w.x);
-    float K3 = sx2*sy2*wz2 + sx2*sz2*wy2 + sy2*sz2*wx2;
-    float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2); //15 / (168 * 3.141592f * sqrt(7*7*7) * sx2 * sy2 * sz2);
-    
-    float density = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);
-    
-    float normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
-    //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
-    //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
-    //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
-    density /= normFactor;
-    
-    float tr = exp(-density * Kernels[PrimitiveIndex()].sigma); //transmittance
-    
-    payload.tr = tr;
-    //float3 color = float3(1, 1, 1) * /*(attr.tOut - attr.tIn)*/tr /** Kernels[PrimitiveIndex()].sigma*/;
-    //payload.color = float4(color, 1); //float4((attr.normal+1)*0.5f, 1); //color;
+    payload.hasHit = true;
+    payload.intersection.tIn = attr.tIn;
+    payload.intersection.tOut = attr.tOut;
+    payload.intersection.pIndex = PrimitiveIndex();
 }
 
 #endif // RAYTRACING_HLSL

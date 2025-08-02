@@ -474,10 +474,12 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f //around sides,up,otherside axis
+        { XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f},
+        { XMFLOAT3(0.0f, 0.0f, -2.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f }, //around sides,up,otherside axis
+        { XMFLOAT3(2.0f, 0.0f, -3.0f), XMFLOAT3(1.0f,0.2,0.3), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,60), 2.0f }, //around sides,up,otherside axis
         /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
-                                                                                               0,0,1)*/},
+                                                                                               0,0,1)*/
         //{ XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
         //                                                                                       0,1,0, 
         //                                                                                       0,0,1) },
@@ -487,9 +489,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     };
     KernelPrimitive kernels[] =
     {
-        {1.0f, 1.0f/*XMFLOAT3X3(1,1,1,
-                          1,1,1,
-                          1,1,1)*/},
+        {0.25f, 1.0f},
+        {0.5f, 1.0f},
+        {0.5f, 1.0f},
     };
     for (int i = 0; i < ARRAYSIZE(ellipsoids); i++)
     {
