@@ -153,7 +153,7 @@ void MyRaygenShader()
     Intersection intersection;
     RayPayload payload = { intersection, true};
     
-    float tr = 1; 
+    float trAcc = 1; 
     uint pIndex = 0;
     float tIn = 0;
     float tOut = 0;
@@ -168,12 +168,12 @@ void MyRaygenShader()
             //tIn = payload.intersection.tIn;
             //tOut = payload.intersection.tOut;
             float tri = CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
-            volColor += Kernels[payload.intersection.pIndex].albedo * (1-tri);
-            tr *= tri;
+            volColor += Kernels[payload.intersection.pIndex].albedo * (1 - tri);
+            trAcc *= tri;
             ray.Origin = ray.Origin + rayDir * payload.intersection.tIn;
         }   
     }
-    float3 color = volColor * (1-tr) + background.rgb * tr;
+    float3 color = volColor * (1 - trAcc) + background.rgb * trAcc;
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = float4(color, 1);
 }

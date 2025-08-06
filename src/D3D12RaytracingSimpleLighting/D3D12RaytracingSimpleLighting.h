@@ -19,6 +19,8 @@
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
+#include "EllipsoidPrimitiveFileReader.h"
+
 namespace GlobalRootSignatureParams {
     enum Value {
         OutputViewSlot = 0,

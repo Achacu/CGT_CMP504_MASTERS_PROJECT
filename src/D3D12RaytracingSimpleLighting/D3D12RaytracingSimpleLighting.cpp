@@ -465,7 +465,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     AllocateUploadBuffer(device, indices, sizeof(indices), &m_indexBuffer.resource);
     AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
 
-    
+    auto reader = EllipsoidPrimitiveFileReader();
+    reader.ReadEllipsoidDataFromFile("scene.txt");
+
     //TESTING
     //class Ellipsoid :
     //center:  mi.Point3f = mi.Point3f(0)
@@ -474,8 +476,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     //    rot : mi.Matrix3f = mi.Matrix3f(0)
     Ellipsoid ellipsoids[] =
     {
-        { XMFLOAT3(0.5f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,0,0), 1.0f},
-        { XMFLOAT3(-0.5f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,0,0), 1.0f }, //around sides,up,otherside axis
+        { XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,0), 1.0f},
+        //{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.5,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,0,20), 1.0f }, //around sides,up,otherside axis
+        { XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f }, //around sides,up,otherside axis
         //{ XMFLOAT3(2.0f, 0.0f, -3.0f), XMFLOAT3(1.0f,0.2,0.3), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,60), 2.0f }, //around sides,up,otherside axis
         /*XMFLOAT3X3(cos(angle),-sin(angle),0,
                                                                                                sin(angle),cos(angle),0,
@@ -489,8 +492,9 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     };
     KernelPrimitive kernels[] =
     {
-        {2.0f, XMFLOAT3(1.0f,0,0)},
-        {2.0f, XMFLOAT3(0,0,1.0f)},
+        {3.0f, XMFLOAT3(1.0f,0,0)},
+        //{3.0f, XMFLOAT3(0,0,1.0f)},
+        {3.0f, XMFLOAT3(0,0,1.0f)},
         //{0.5f, 1.0f},
     };
     for (int i = 0; i < ARRAYSIZE(ellipsoids); i++)
