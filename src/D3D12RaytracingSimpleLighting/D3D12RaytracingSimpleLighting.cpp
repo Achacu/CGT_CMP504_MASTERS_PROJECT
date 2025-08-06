@@ -377,19 +377,19 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
 // Build geometry used in the sample.
 D3DBuffer ellipsoidAABBsBuffer;
 std::vector<D3D12_RAYTRACING_AABB> aabbs;
-struct Ellipsoid
-{
-    XMFLOAT3 center;
-    XMFLOAT3 radii; //radii <= 1 
-    XMFLOAT4 quat;
-    Matrix rot;
-    float extent; //scale factor
-};
-struct KernelPrimitive
-{
-    float sigma; //cross section
-    XMFLOAT3 albedo; //computed from pdf???
-};
+//struct Ellipsoid
+//{
+//    XMFLOAT3 center;
+//    XMFLOAT3 radii; //radii <= 1 
+//    XMFLOAT4 quat;
+//    Matrix rot;
+//    float extent; //scale factor
+//};
+//struct KernelPrimitive
+//{
+//    float sigma; //cross section
+//    XMFLOAT3 albedo; //computed from pdf???
+//};
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
     auto device = m_deviceResources->GetD3DDevice();
@@ -468,38 +468,22 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     auto reader = EllipsoidPrimitiveFileReader();
     reader.ReadEllipsoidDataFromFile("scene.txt");
 
-    //TESTING
-    //class Ellipsoid :
-    //center:  mi.Point3f = mi.Point3f(0)
-    //    radii : mi.Vector3f = mi.Vector3f(0)
-    //    quat : mi.Quaternion4f = mi.Quaternion4f(0)
-    //    rot : mi.Matrix3f = mi.Matrix3f(0)
-    Ellipsoid ellipsoids[] =
+    std::vector<EllipsoidPrimitiveFileReader::Ellipsoid> ellipsoids =
     {
-        { XMFLOAT3(1.0f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,0), 1.0f},
-        //{ XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.5,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,0,20), 1.0f }, //around sides,up,otherside axis
-        { XMFLOAT3(-1.0f, 0.0f, 0.0f), XMFLOAT3(1.0f,1.0,1.0), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f }, //around sides,up,otherside axis
-        //{ XMFLOAT3(2.0f, 0.0f, -3.0f), XMFLOAT3(1.0f,0.2,0.3), XMFLOAT4(0,0,0,0),XMMatrixRotationRollPitchYaw(0,30,60), 2.0f }, //around sides,up,otherside axis
-        /*XMFLOAT3X3(cos(angle),-sin(angle),0,
-                                                                                               sin(angle),cos(angle),0,
-                                                                                               0,0,1)*/
-        //{ XMFLOAT3(4.0f, 0.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
-        //                                                                                       0,1,0, 
-        //                                                                                       0,0,1) },
-        //{ XMFLOAT3(4.0f, 1.0f, 0.0f), XMFLOAT3(1.0f, 0.5f, 1.0f), XMFLOAT4(0,0,0,0),XMFLOAT3X3(1,0,0, 
-        //                                                                                       0,1,0, 
-        //                                                                                       0,0,1) },
+        { Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f,1.0,1.0),XMMatrixRotationRollPitchYaw(0,30,0), 1.0f},
+        //{ Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f,1.5,1.0), XMMatrixRotationRollPitchYaw(0,0,20), 1.0f }, //around sides,up,otherside axis
+        { Vector3(-1.0f, 0.0f, 0.0f), Vector3(1.0f,1.0,1.0), XMMatrixRotationRollPitchYaw(45,0,0), 1.0f }, //around sides,up,otherside axis
     };
-    KernelPrimitive kernels[] =
+    std::vector< EllipsoidPrimitiveFileReader::KernelPrimitive> kernels =
     {
-        {3.0f, XMFLOAT3(1.0f,0,0)},
-        //{3.0f, XMFLOAT3(0,0,1.0f)},
-        {3.0f, XMFLOAT3(0,0,1.0f)},
+        {3.0f, Vector3(1.0f,0,0)},
+        //{3.0f, Vector3(0,0,1.0f)},
+        {3.0f, Vector3(0,0,1.0f)},
         //{0.5f, 1.0f},
     };
-    for (int i = 0; i < ARRAYSIZE(ellipsoids); i++)
+    for (int i = 0; i < ellipsoids.size(); i++)
     {
-        Ellipsoid& s = ellipsoids[i];
+        EllipsoidPrimitiveFileReader::Ellipsoid& s = ellipsoids[i];
         float maxDim = max(max(s.radii.x, s.radii.y), s.radii.z) * s.extent;
         D3D12_RAYTRACING_AABB aabb;
         
@@ -513,13 +497,13 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
         aabbs.push_back(aabb);
     }
 
-    AllocateUploadBuffer(device, ellipsoids, sizeof(ellipsoids), &m_ellipsoidBuffer.resource); //to be sent to shader (added to global root signature)
-    AllocateUploadBuffer(device, kernels, sizeof(kernels), &m_kernelPrimitiveBuffer.resource); //to be sent to shader (added to global root signature)
+    AllocateUploadBuffer(device, ellipsoids.data(), sizeof(EllipsoidPrimitiveFileReader::Ellipsoid) * ellipsoids.size(), &m_ellipsoidBuffer.resource); //to be sent to shader (added to global root signature)
+    AllocateUploadBuffer(device, kernels.data(), sizeof(EllipsoidPrimitiveFileReader::KernelPrimitive) * kernels.size(), &m_kernelPrimitiveBuffer.resource); //to be sent to shader (added to global root signature)
     AllocateUploadBuffer(device, aabbs.data(), sizeof(D3D12_RAYTRACING_AABB) * aabbs.size(), &ellipsoidAABBsBuffer.resource); //used when constructing BLAS
 
     //
-    UINT descriptorIndexEB = CreateBufferSRV(&m_ellipsoidBuffer, ARRAYSIZE(ellipsoids), sizeof(ellipsoids[0])); //TESTING
-    UINT descriptorIndexKPB = CreateBufferSRV(&m_kernelPrimitiveBuffer, ARRAYSIZE(kernels), sizeof(kernels[0])); //TESTING
+    UINT descriptorIndexEB = CreateBufferSRV(&m_ellipsoidBuffer, ellipsoids.size(), sizeof(EllipsoidPrimitiveFileReader::Ellipsoid)); //TESTING
+    UINT descriptorIndexKPB = CreateBufferSRV(&m_kernelPrimitiveBuffer, kernels.size(), sizeof(EllipsoidPrimitiveFileReader::KernelPrimitive)); //TESTING
 
     // Vertex buffer is passed to the shader along with index buffer as a descriptor table.
     // Vertex buffer descriptor must follow index buffer descriptor in the descriptor heap.

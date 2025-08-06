@@ -3,16 +3,19 @@
 #include <iostream>
 #include <fstream>
 #include <SimpleMath.h>
+using namespace DirectX;
 using namespace DirectX::SimpleMath;
 using namespace std;
+
 class EllipsoidPrimitiveFileReader
 {
 public:
+
     struct Ellipsoid
     {
         Vector3 center;
         Vector3 radii; //radii <= 1 
-        Quaternion quat;
+        //Quaternion quat;
         Matrix rot;
         float extent = 3.0f; //scale factor
     };
@@ -26,7 +29,8 @@ public:
 private:
     void ReadEllipsoidLine(string lineStr);
 
-    void AddEllipsoid(Vector3 center, Vector3 radii, Vector4 quat, float extent);
+    void AddEllipsoid(Vector3 center, Vector3 radii, Quaternion quat, float extent);
+
     void AddKernelPrimitive(Vector3 albedo, float sigma);
     vector<Ellipsoid> ellipsoids;
     vector<KernelPrimitive> kernels;

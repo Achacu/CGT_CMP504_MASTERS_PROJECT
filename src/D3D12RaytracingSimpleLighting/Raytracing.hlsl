@@ -18,7 +18,6 @@ struct Ellipsoid
 {
     float3 center;
     float3 radii; //<= 1
-    float4 quat;
     matrix rot;
     float extent; //scale factor
 };

@@ -13,7 +13,7 @@ inline Vector3 StrToVector3(string s)
 	}
 	return Vector3(coords);
 }
-inline Vector4 StrToVector4(string s)
+inline Quaternion StrToQuaternion(string s)
 {
 	stringstream ss(s);
 	string coord;
@@ -23,7 +23,7 @@ inline Vector4 StrToVector4(string s)
 		getline(ss, coord, ',');
 		coords[i] = atof(coord.c_str());
 	}
-	return Vector4(coords);
+	return Quaternion(coords);
 }
 void EllipsoidPrimitiveFileReader::ReadEllipsoidDataFromFile(string filePath)
 {
@@ -49,7 +49,7 @@ void EllipsoidPrimitiveFileReader::ReadEllipsoidLine(string lineStr)
 	getline(ss, radiiStr, ']');
 	Vector3 radii = StrToVector3(radiiStr.substr(2));
 	getline(ss, quatStr, ']');
-	Vector4 quat = StrToVector4(quatStr.substr(2)); //change to vector4
+	Quaternion quat = StrToQuaternion(quatStr.substr(2)); //change to vector4
 	getline(ss, albedoStr, ']');
 	Vector3 albedo = StrToVector3(albedoStr.substr(2));
 	getline(ss, sigmaStr, '\n');
@@ -58,16 +58,15 @@ void EllipsoidPrimitiveFileReader::ReadEllipsoidLine(string lineStr)
 	AddKernelPrimitive(albedo, sigma);
 }
 
-void EllipsoidPrimitiveFileReader::AddEllipsoid(Vector3 center, Vector3 radii, Vector4 quat, float extent)
+void EllipsoidPrimitiveFileReader::AddEllipsoid(Vector3 center, Vector3 radii, Quaternion quat, float extent)
 {
 	auto el = Ellipsoid();
 	el.center = center;
 	el.radii = radii;
-	el.quat = quat;
-	//TODO rot from quat
 	el.extent = extent;
+	el.rot = Matrix::CreateFromQuaternion(quat);
 
-	ellipsoids.push_back(el);
+	ellipsoids.push_back(el);	
 }
 
 void EllipsoidPrimitiveFileReader::AddKernelPrimitive(Vector3 albedo, float sigma)
