@@ -167,8 +167,8 @@ void MyRaygenShader()
             //tIn = payload.intersection.tIn;
             //tOut = payload.intersection.tOut;
             float tri = CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
-            volColor += Kernels[payload.intersection.pIndex].albedo * (1 - tri);
             trAcc *= tri;
+            volColor += Kernels[payload.intersection.pIndex].albedo /** trAcc;*/ *(1 - tri);
             ray.Origin = ray.Origin + rayDir * payload.intersection.tIn;
         }   
     }

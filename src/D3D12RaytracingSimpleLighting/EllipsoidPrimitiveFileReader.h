@@ -26,6 +26,10 @@ public:
     };
 
     void ReadEllipsoidDataFromFile(string filePath);
+
+    vector<Ellipsoid> GetEllipsoids();
+    vector<KernelPrimitive> GetKernels();
+
 private:
     void ReadEllipsoidLine(string lineStr);
 

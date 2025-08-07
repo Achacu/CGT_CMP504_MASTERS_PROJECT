@@ -39,6 +39,9 @@ void EllipsoidPrimitiveFileReader::ReadEllipsoidDataFromFile(string filePath)
 	}
 	myReadFile.close();
 }
+vector<EllipsoidPrimitiveFileReader::Ellipsoid> EllipsoidPrimitiveFileReader::GetEllipsoids() { return ellipsoids; }
+vector<EllipsoidPrimitiveFileReader::KernelPrimitive> EllipsoidPrimitiveFileReader::GetKernels() { return kernels; }
+
 void EllipsoidPrimitiveFileReader::ReadEllipsoidLine(string lineStr)
 {
 	stringstream ss(lineStr);
@@ -63,7 +66,7 @@ void EllipsoidPrimitiveFileReader::AddEllipsoid(Vector3 center, Vector3 radii, Q
 	auto el = Ellipsoid();
 	el.center = center;
 	el.radii = radii;
-	el.extent = extent;
+	el.extent = extent;// *(rand() % 2);
 	el.rot = Matrix::CreateFromQuaternion(quat);
 
 	ellipsoids.push_back(el);	
@@ -73,6 +76,6 @@ void EllipsoidPrimitiveFileReader::AddKernelPrimitive(Vector3 albedo, float sigm
 {
 	auto ker = KernelPrimitive();
 	ker.albedo = albedo;
-	ker.sigma = sigma;
+	ker.sigma = 0.1f;//(rand()%2);//sigma; TODO REMOVE HARDCODED VALUE
 	kernels.push_back(ker);
 }
