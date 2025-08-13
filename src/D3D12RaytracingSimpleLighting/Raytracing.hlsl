@@ -135,7 +135,8 @@ void MyRaygenShader()
 {
     float3 rayDir;
     float3 origin;
-    float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
+    float4 background = float4(1, 1, 1, 1);
+    //float4(0.0f, 0.2f, 0.4f, 1.0f);
     
     // Generate a ray for a camera pixel corresponding to an index from the dispatched 2D grid.
     GenerateCameraRay(DispatchRaysIndex().xy, origin, rayDir);
@@ -156,7 +157,7 @@ void MyRaygenShader()
     uint pIndex = 0;
     float tIn = 0;
     float tOut = 0;
-    float3 volColor = float3(0, 0, 0);
+    //float3 volColor = float3(0, 0, 0);
     while (payload.hasHit)
     {
         payload.hasHit = false;
@@ -168,11 +169,11 @@ void MyRaygenShader()
             //tOut = payload.intersection.tOut;
             float tri = CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
             trAcc *= tri;
-            volColor += Kernels[payload.intersection.pIndex].albedo /** trAcc;*/ *(1 - tri);
+            //volColor += Kernels[payload.intersection.pIndex].albedo /** trAcc;*/ *(1 - tri);
             ray.Origin = ray.Origin + rayDir * payload.intersection.tIn;
         }   
     }
-    float3 color = volColor * (1 - trAcc) + background.rgb * trAcc;
+    float3 color = /*volColor * (1 - trAcc) +*/ background.rgb * trAcc;
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = float4(color, 1);
 }

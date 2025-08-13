@@ -66,7 +66,7 @@ void EllipsoidPrimitiveFileReader::AddEllipsoid(Vector3 center, Vector3 radii, Q
 	auto el = Ellipsoid();
 	el.center = center;
 	el.radii = radii;
-	el.extent = extent;// *(rand() % 2);
+	el.extent = extent;
 	el.rot = Matrix::CreateFromQuaternion(quat);
 
 	ellipsoids.push_back(el);	
@@ -76,6 +76,6 @@ void EllipsoidPrimitiveFileReader::AddKernelPrimitive(Vector3 albedo, float sigm
 {
 	auto ker = KernelPrimitive();
 	ker.albedo = albedo;
-	ker.sigma = 0.1f;//(rand()%2);//sigma; TODO REMOVE HARDCODED VALUE
+	ker.sigma = sigma*100.0f; //scaling factor was chosen by trial and error
 	kernels.push_back(ker);
 }
