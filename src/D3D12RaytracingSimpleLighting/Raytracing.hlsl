@@ -120,7 +120,36 @@ float erf(float x)
     }
 }
 
-
+float CalculateDensity(float3 p, float3 p1, float3 s, float3 w, float t, bool normalized, bool isGaussian)
+{
+    float wx2 = w.x * w.x;
+    float wy2 = w.y * w.y;
+    float wz2 = w.z * w.z;
+    
+    float px2 = p.x * p.x;
+    float py2 = p.y * p.y;
+    float pz2 = p.z * p.z;
+    
+    float sx2 = s.x * s.x;
+    float sy2 = s.y * s.y;
+    float sz2 = s.z * s.z;
+    
+    float density = 0.0f;
+    float normFactor = 1.0f;
+    if (!isGaussian)
+    {
+        float K1 = 3 * (((px2 - sx2) * sy2 + py2 * sx2) * sz2 + pz2 * sx2 * sy2);
+        float K2 = 3 * (p.z * sx2 * sy2 * w.z + p.y * sx2 * sz2 * w.y + p.x * sy2 * sz2 * w.x);
+        float K3 = sx2 * sy2 * wz2 + sx2 * sz2 * wy2 + sy2 * sz2 * wx2;
+        float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2);
+    
+        density = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);       
+        normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
+    }
+    
+    if (normalized) density /= normFactor;
+    return density;
+}
 float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
 {
     float3 p = r0 + intersection.tIn * rd;
@@ -137,27 +166,7 @@ float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
     float t = sqrt(dot(w, w)); //magnitude
     w /= t; //normalized direction
         
-    float wx2 = w.x * w.x;
-    float wy2 = w.y * w.y;
-    float wz2 = w.z * w.z;
-    
-    float px2 = p.x * p.x;
-    float py2 = p.y * p.y;
-    float pz2 = p.z * p.z;
-    
-    float sx2 = s.x * s.x;
-    float sy2 = s.y * s.y;
-    float sz2 = s.z * s.z;
-    
-    float K1 = 3 * (((px2 - sx2) * sy2 + py2 * sx2) * sz2 + pz2 * sx2 * sy2);
-    float K2 = 3 * (p.z * sx2 * sy2 * w.z + p.y * sx2 * sz2 * w.y + p.x * sy2 * sz2 * w.x);
-    float K3 = sx2 * sy2 * wz2 + sx2 * sz2 * wy2 + sy2 * sz2 * wx2;
-    float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2);
-    
-    float density = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);
-    
-    float normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
-    density /= normFactor;
+    float density = CalculateDensity(p, p1, s, w, t, false, false);
     //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
     //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
     //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|

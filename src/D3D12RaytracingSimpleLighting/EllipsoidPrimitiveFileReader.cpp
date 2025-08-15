@@ -76,6 +76,6 @@ void EllipsoidPrimitiveFileReader::AddKernelPrimitive(Vector3 albedo, float sigm
 {
 	auto ker = KernelPrimitive();
 	ker.albedo = albedo;
-	ker.sigma = sigma*100.0f; //scaling factor was chosen by trial and error
+	ker.sigma = sigma; //scaling factor was chosen by trial and error
 	kernels.push_back(ker);
 }
