@@ -11,9 +11,10 @@
 
 #ifndef RAYTRACING_HLSL
 #define RAYTRACING_HLSL
-
 #define HLSL
 #include "RaytracingHlslCompat.h"
+#define pi 3.141592f
+
 struct Ellipsoid
 {
     float3 center;
@@ -120,7 +121,7 @@ float erf(float x)
     }
 }
 
-float CalculateDensity(float3 p, float3 p1, float3 s, float3 w, float t, bool normalized, bool isGaussian)
+float ComputeDensityIntegral(float3 p, float3 p1, float3 s, float3 w, float t, bool normalized, bool isGaussian, float tmax, float extent)
 {
     float wx2 = w.x * w.x;
     float wy2 = w.y * w.y;
@@ -130,24 +131,55 @@ float CalculateDensity(float3 p, float3 p1, float3 s, float3 w, float t, bool no
     float py2 = p.y * p.y;
     float pz2 = p.z * p.z;
     
+    if (!isGaussian)
+        s *= extent;
     float sx2 = s.x * s.x;
     float sy2 = s.y * s.y;
     float sz2 = s.z * s.z;
     
     float density = 0.0f;
     float normFactor = 1.0f;
-    if (!isGaussian)
-    {
+    if (!isGaussian) //epanechnikov
+    {        
+        
         float K1 = 3 * (((px2 - sx2) * sy2 + py2 * sx2) * sz2 + pz2 * sx2 * sy2);
         float K2 = 3 * (p.z * sx2 * sy2 * w.z + p.y * sx2 * sz2 * w.y + p.x * sy2 * sz2 * w.x);
         float K3 = sx2 * sy2 * wz2 + sx2 * sz2 * wy2 + sy2 * sz2 * wx2;
-        float Knorm = 5.0 / (8.0 * 3.141592f * s.x * sx2 * s.y * sy2 * s.z * sz2);
+        float Knorm = 5.0f / (8.0f * pi * s.x * sx2 * s.y * sy2 * s.z * sz2);
     
         density = -Knorm * (K1 * t + K2 * t * t + K3 * t * t * t);       
-        normFactor = 5.0 / (2.0 * 3.141592f * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0));
+        if (normalized) normFactor = 5.0f / (2.0f * pi * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0f));
+    }
+    else //gaussian
+    {
+        float C0 = sx2 * sy2 * wz2 + sx2 * sz2 * wy2 + sy2 * sz2 * wx2;
+
+        float C1 = (px2 * sy2 * wz2 + py2 * sx2 * wz2 //C3
+        - 2 * p.y * p.z * sx2 * w.y * w.z //C3
+        - 2 * p.x * p.z * sy2 * w.x * w.z //C3
+        + px2 * sz2 * wy2 + pz2 * sx2 * wy2 //C4
+        - 2 * p.x * p.y * sz2 * w.x * w.y  //C4
+        + py2 * sz2 * wx2 + pz2 * sy2 * wx2); //C4
+
+        C1 /= (2.0f * C0);
+        
+        float denom = /*4.0f*/4.0f * pi * sqrt(C0);
+        
+        density = exp(-C1) * rcp(denom);
+
+        float C2 = p.z * sx2 * sy2 * w.z + p.y * sx2 * sz2 * w.y + p.x * sy2 * sz2 * w.x;
+        float erf_denom = s.x * s.y * s.z * sqrt(2.0f * C0);
+
+        float erf1 = erf((tmax * C0 + C2) / erf_denom);
+        float erf2 = erf(C2 / erf_denom);
+
+        density *= (erf1 - erf2);
+        
+        if (normalized) normFactor = rcp(0.5f * 4.0f * pi * sqrt((sx2 * sy2 + sx2 * sz2 + sy2 * sz2) / 3.0f));
     }
     
     if (normalized) density /= normFactor;
+    density = max(density, 0.0f);
     return density;
 }
 float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
@@ -160,13 +192,13 @@ float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
     p = mul((float3x3) transpose(e.rot), p - e.center);
     p1 = mul((float3x3) transpose(e.rot), p1 - e.center);
     
-    float3 s = e.radii * e.extent;
+    float3 s = e.radii;
     
     float3 w = p1 - p;
     float t = sqrt(dot(w, w)); //magnitude
     w /= t; //normalized direction
-        
-    float density = CalculateDensity(p, p1, s, w, t, false, false);
+    
+    float density = ComputeDensityIntegral(p, p1, s, w, t, false, true, intersection.tOut, e.extent);
     //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
     //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
     //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|

@@ -470,15 +470,15 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
 
     //std::vector<EllipsoidPrimitiveFileReader::Ellipsoid> ellipsoids =
     //{
-    //    { Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f,1.0,1.0),XMMatrixRotationRollPitchYaw(0,30,0), 1.0f},
+    //    { Vector3(1.0f, 0.0f, 0.0f), Vector3(1.0f,0.5,1.0),XMMatrixRotationRollPitchYaw(0,30,0), 1.0f},
     //    //{ Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f,1.5,1.0), XMMatrixRotationRollPitchYaw(0,0,20), 1.0f }, //around sides,up,otherside axis
     //    { Vector3(-1.0f, 0.0f, 0.0f), Vector3(1.0f,1.0,1.0), XMMatrixRotationRollPitchYaw(45,0,0), 1.0f }, //around sides,up,otherside axis
     //};
     //std::vector< EllipsoidPrimitiveFileReader::KernelPrimitive> kernels =
     //{
-    //    {2.0f, Vector3(1.0f,0,0)},
+    //    {1.0f, Vector3(1.0f,0,0)},
     //    //{3.0f, Vector3(0,0,1.0f)},
-    //    {2.0f, Vector3(0,0,1.0f)},
+    //    {1.0f, Vector3(0,0,1.0f)},
     //    //{0.5f, 1.0f},
     //};
 
