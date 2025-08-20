@@ -86,17 +86,20 @@ void D3D12RaytracingSimpleLighting::InitializeScene()
     // Setup camera.
     {
         // Initialize the view and projection inverse matrices.
-        m_eye = { 0.0f, 2.0f, -5.0f, 1.0f };
-        m_at = { 0.0f, 0.0f, 0.0f, 1.0f };
+        init_eye = { 0,0,-4,1 };//{ 0.0f, 2.0f, -5.0f, 1.0f };
+        init_at = { 0.0f, 0.0f, 0.0f, 1.0f };
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
-        XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
-        m_up = XMVector3Normalize(XMVector3Cross(direction, right));
+        XMVECTOR direction = XMVector4Normalize(init_at - init_eye);
+        init_up = XMVector3Normalize(XMVector3Cross(direction, right));
 
+        m_eye = XMVECTOR(init_eye);
+        m_up = XMVECTOR(init_up);
+        m_at = XMVECTOR(init_at);
         // Rotate camera around Y axis.
-        XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
-        m_eye = XMVector3Transform(m_eye, rotate);
-        m_up = XMVector3Transform(m_up, rotate);
+        //XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(45.0f));
+        //m_eye = XMVector3Transform(m_eye, rotate);
+        //m_up = XMVector3Transform(m_up, rotate);
         
         UpdateCameraMatrices();
     }
@@ -377,19 +380,7 @@ void D3D12RaytracingSimpleLighting::CreateDescriptorHeap()
 // Build geometry used in the sample.
 D3DBuffer ellipsoidAABBsBuffer;
 std::vector<D3D12_RAYTRACING_AABB> aabbs;
-//struct Ellipsoid
-//{
-//    XMFLOAT3 center;
-//    XMFLOAT3 radii; //radii <= 1 
-//    XMFLOAT4 quat;
-//    Matrix rot;
-//    float extent; //scale factor
-//};
-//struct KernelPrimitive
-//{
-//    float sigma; //cross section
-//    XMFLOAT3 albedo; //computed from pdf???
-//};
+
 void D3D12RaytracingSimpleLighting::BuildGeometry()
 {
     auto device = m_deviceResources->GetD3DDevice();
@@ -466,24 +457,24 @@ void D3D12RaytracingSimpleLighting::BuildGeometry()
     AllocateUploadBuffer(device, vertices, sizeof(vertices), &m_vertexBuffer.resource);
 
     auto reader = EllipsoidPrimitiveFileReader();
-    reader.ReadEllipsoidDataFromFile("scene.txt");
+    reader.ReadEllipsoidDataFromFile("primitives.txt");
 
-    std::vector<EllipsoidPrimitiveFileReader::Ellipsoid> ellipsoids =
-    {
-        { Vector3(1.0f, 0.0f, 1.0f), Vector3(0.5,1.0,1.0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f},
-        { Vector3(0.0f, 0.5f, 0.0f), Vector3(1.0,0.5,1.0), XMMatrixRotationRollPitchYaw(0,45,0), 1.0f }, //around sides,up,otherside axis
-        { Vector3(-1.0f, 0.0f, -1.0f), Vector3(1.0,1.0,0.5), XMMatrixRotationRollPitchYaw(0,0,45), 1.0f }, //around sides,up,otherside axis
-    };
-    std::vector< EllipsoidPrimitiveFileReader::KernelPrimitive> kernels =
-    {
-        {5.0f, Vector3(1.0f,0,0)},
-        {5.0f, Vector3(0,1.0f,0)},
-        {5.0f, Vector3(0,0,1.0f)},
-        //{0.5f, 1.0f},
-    };
+    //std::vector<EllipsoidPrimitiveFileReader::Ellipsoid> ellipsoids =
+    //{
+    //    { Vector3(1.0f, 0.0f, 1.0f), Vector3(0.5,1.0,1.0),XMMatrixRotationRollPitchYaw(45,0,0), 1.0f},
+    //    { Vector3(0.0f, 0.5f, 0.0f), Vector3(1.0,0.5,1.0), XMMatrixRotationRollPitchYaw(0,45,0), 1.0f }, //around sides,up,otherside axis
+    //    { Vector3(-1.0f, 0.0f, -1.0f), Vector3(1.0,1.0,0.5), XMMatrixRotationRollPitchYaw(0,0,45), 1.0f }, //around sides,up,otherside axis
+    //};
+    //std::vector< EllipsoidPrimitiveFileReader::KernelPrimitive> kernels =
+    //{
+    //    {5.0f, Vector3(1.0f,0,0)},
+    //    {5.0f, Vector3(0,1.0f,0)},
+    //    {5.0f, Vector3(0,0,1.0f)},
+    //    //{0.5f, 1.0f},
+    //};
 
-   /* auto ellipsoids = reader.GetEllipsoids();
-    auto kernels = reader.GetKernels();*/
+    auto ellipsoids = reader.GetEllipsoids();
+    auto kernels = reader.GetKernels();
 
     for (int i = 0; i < ellipsoids.size(); i++)
     {
@@ -691,6 +682,11 @@ void D3D12RaytracingSimpleLighting::BuildShaderTables()
     }
 }
 
+int camIndex = -1;
+std::vector<float> camAngles = {
+    -90, -45, 0, 45
+};
+
 // Update frame-based values.
 void D3D12RaytracingSimpleLighting::OnUpdate()
 {
@@ -700,7 +696,13 @@ void D3D12RaytracingSimpleLighting::OnUpdate()
     auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
     auto prevFrameIndex = m_deviceResources->GetPreviousFrameIndex();
 
+    if (GetAsyncKeyState('1') & 0x8000) camIndex = 1;
+    if (GetAsyncKeyState('2') & 0x8000) camIndex = 2;
+    if (GetAsyncKeyState('3') & 0x8000) camIndex = 3;
+    if (GetAsyncKeyState('4') & 0x8000) camIndex = 4;
+
     // Rotate the camera around Y axis.
+    if(camIndex == -1)
     {
         float secondsToRotateAround = 24.0f;
         float angleToRotateBy = 2* 360.0f * (elapsedTime / secondsToRotateAround); //DEBUGGING
@@ -708,8 +710,15 @@ void D3D12RaytracingSimpleLighting::OnUpdate()
         m_eye = XMVector3Transform(m_eye, rotate);
         m_up = XMVector3Transform(m_up, rotate);
         m_at = XMVector3Transform(m_at, rotate);
-        UpdateCameraMatrices();
     }
+    else
+    {
+        XMMATRIX rotate = XMMatrixRotationY(XMConvertToRadians(camAngles[camIndex]));
+        m_eye = XMVector3Transform(init_eye, rotate);
+        m_up = XMVector3Transform(init_up, rotate);
+        m_at = XMVector3Transform(init_at, rotate);
+    }
+    UpdateCameraMatrices();
 
     // Rotate the second light around Y axis.
     {

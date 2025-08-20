@@ -127,6 +127,10 @@ private:
     XMVECTOR m_at;
     XMVECTOR m_up;
 
+    XMVECTOR init_eye;
+    XMVECTOR init_at;
+    XMVECTOR init_up;
+
     void UpdateCameraMatrices();
     void InitializeScene();
     void RecreateD3D();

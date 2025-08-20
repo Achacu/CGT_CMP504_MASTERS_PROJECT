@@ -14,7 +14,7 @@
 #define HLSL
 #include "RaytracingHlslCompat.h"
 #define pi 3.141592f
-#define IS_GAUSSIAN true
+#define IS_GAUSSIAN true //<-------------------------------------------- Switch between Gaussian and Epanechnikov kernels
 
 struct Ellipsoid
 {
@@ -25,7 +25,7 @@ struct Ellipsoid
 };
 struct KernelPrimitive
 {
-    float sigma; //primitive cross section [m^2]
+    float sigma; //primitive extinction coefficient
     float3 albedo;
 };
 
