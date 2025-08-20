@@ -59,12 +59,18 @@ void D3D12RaytracingSimpleLighting::OnInit()
     CreateWindowSizeDependentResources();
 }
 
+bool useGaussianKernels = 0;
 // Update camera matrices passed into the shader.
 void D3D12RaytracingSimpleLighting::UpdateCameraMatrices()
 {
+    if (GetAsyncKeyState('G') & 0x8000) useGaussianKernels = true;
+    if (GetAsyncKeyState('E') & 0x8000) useGaussianKernels = false;
+    
     auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
-    m_sceneCB[frameIndex].cameraPosition = m_eye;
+    XMFLOAT4 varCamPos;
+    XMStoreFloat4(&varCamPos, m_eye);
+    m_sceneCB[frameIndex].cameraPosition = {varCamPos.x, varCamPos.y, varCamPos.z, useGaussianKernels? 1.0f : 0.0f};
     float fovAngleY = 45.0f;
     XMMATRIX view = XMMatrixLookAtLH(m_eye, m_at, m_up);
     XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovAngleY), m_aspectRatio, 1.0f, 125.0f);

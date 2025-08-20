@@ -14,7 +14,6 @@
 #define HLSL
 #include "RaytracingHlslCompat.h"
 #define pi 3.141592f
-#define IS_GAUSSIAN true //<-------------------------------------------- Switch between Gaussian and Epanechnikov kernels
 
 struct Ellipsoid
 {
@@ -186,10 +185,8 @@ float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
     float deltaT = sqrt(dot(w, w)); //magnitude
     w /= deltaT; //normalized direction
     
-    float density = ComputeDensityIntegral(p, p1, s, w, deltaT, false, IS_GAUSSIAN, intersection.tOut, e.extent);
-    //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
-    //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
-    //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
+    //NOTE: the w value of cameraPosition determines if Gaussian kernels will be used
+    float density = ComputeDensityIntegral(p, p1, s, w, deltaT, false, g_sceneCB.cameraPosition.w, intersection.tOut, e.extent);
     
     return exp(-density * Kernels[intersection.pIndex].sigma); //transmittance
 }
