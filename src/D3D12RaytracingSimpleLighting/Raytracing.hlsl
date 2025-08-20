@@ -14,6 +14,7 @@
 #define HLSL
 #include "RaytracingHlslCompat.h"
 #define pi 3.141592f
+#define IS_GAUSSIAN true
 
 struct Ellipsoid
 {
@@ -75,18 +76,6 @@ inline void GenerateCameraRay(uint2 index, out float3 origin, out float3 directi
     origin = g_sceneCB.cameraPosition.xyz;
     direction = normalize(world.xyz - origin);
 }
-
-// Diffuse lighting calculation.
-float4 CalculateDiffuseLighting(float3 hitPosition, float3 normal)
-{
-    float3 pixelToLight = normalize(g_sceneCB.lightPosition.xyz - hitPosition);
-
-    // Diffuse contribution.
-    float fNDotL = max(0.0f, dot(pixelToLight, normal));
-
-    return g_cubeCB.albedo * g_sceneCB.lightDiffuseColor * fNDotL;
-}
-
 //https://gpuopen.com/download/Accurate_Diffuse_Lighting_from_Spherical_Gaussian_Lights_(supplemental).pdf
 float erf(float x)
 {
@@ -140,8 +129,7 @@ float ComputeDensityIntegral(float3 p, float3 p1, float3 s, float3 w, float t, b
     float density = 0.0f;
     float normFactor = 1.0f;
     if (!isGaussian) //epanechnikov
-    {        
-        
+    {                
         float K1 = 3 * (((px2 - sx2) * sy2 + py2 * sx2) * sz2 + pz2 * sx2 * sy2);
         float K2 = 3 * (p.z * sx2 * sy2 * w.z + p.y * sx2 * sz2 * w.y + p.x * sy2 * sz2 * w.x);
         float K3 = sx2 * sy2 * wz2 + sx2 * sz2 * wy2 + sy2 * sz2 * wx2;
@@ -163,7 +151,7 @@ float ComputeDensityIntegral(float3 p, float3 p1, float3 s, float3 w, float t, b
 
         C1 /= (2.0f * C0);
         
-        float denom = /*4.0f*/4.0f * pi * sqrt(C0);
+        float denom = 4.0f * pi * sqrt(C0);
         
         density = exp(-C1) * rcp(denom);
 
@@ -195,10 +183,10 @@ float CalculateTransmittance(float3 r0, float3 rd, Intersection intersection)
     float3 s = e.radii;
     
     float3 w = p1 - p;
-    float t = sqrt(dot(w, w)); //magnitude
-    w /= t; //normalized direction
+    float deltaT = sqrt(dot(w, w)); //magnitude
+    w /= deltaT; //normalized direction
     
-    float density = ComputeDensityIntegral(p, p1, s, w, t, false, true, intersection.tOut, e.extent);
+    float density = ComputeDensityIntegral(p, p1, s, w, deltaT, false, IS_GAUSSIAN, intersection.tOut, e.extent);
     //float density = sqrt(dot(deltaP, deltaP)) * (P1.x + P1.y + P1.z + 0.5f * (deltaP.x + deltaP.y + deltaP.z)); //for f(x,y,z) = x+y+z
     //float density = sqrt(dot(w, w)) * (P1.y + 0.5f * w.y); //for f(x,y,z) = y
     //float density = sqrt(dot(deltaP, deltaP)) * ((P2.y >= 0) ? 1 : -1) * (P2.y + 0.5f * deltaP.y); //for f(x,y,z) = |y|
@@ -231,26 +219,20 @@ void MyRaygenShader()
     RayPayload payload = { intersection, true};
     
     float trAcc = 1; 
-    uint pIndex = 0;
-    float tIn = 0;
-    float tOut = 0;
-    //float3 volColor = float3(0, 0, 0);
+    float3 volColor = float3(0, 0, 0);
     while (payload.hasHit)
     {
-        payload.hasHit = false;
+        //payload.hasHit = false;
         TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
         if (payload.hasHit)
         {
-            //pIndex = payload.intersection.pIndex;
-            //tIn = payload.intersection.tIn;
-            //tOut = payload.intersection.tOut;
             float tri = CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
             trAcc *= tri;
-            //volColor += Kernels[payload.intersection.pIndex].albedo /** trAcc;*/ *(1 - tri);
+            volColor += Kernels[payload.intersection.pIndex].albedo * (1 - tri); //when volume is purely absorptive albedo = (0,0,0)
             ray.Origin = ray.Origin + rayDir * payload.intersection.tIn;
         }   
     }
-    float3 color = /*volColor * (1 - trAcc) +*/ background.rgb * trAcc;
+    float3 color = volColor * (1 - trAcc) + background.rgb * trAcc;
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = float4(color, 1);
 }
@@ -292,17 +274,17 @@ void EllipsoidIntersectionShader()
     float t0 = (-b - sqrtDisc) / (2.0f * a);
     float t1 = (-b + sqrtDisc) / (2.0f * a);
 
-    if (t0 < RayTMin()) //prevents intersection from ray generated inside the ellipsoid
+    if (t0 <= 0 /*RayTMin()*/) //prevents intersection from ray generated inside the ellipsoid
         return;
     
-    float t = (t0 > 0) ? t0 : t1;
+    //float t = (t0 > 0) ? t0 : t1;
     attr.tIn = t0;
     attr.tOut = t1;
     
     //if (ellipsoidIndex == 2)
-    float3 pos = WorldRayOrigin() + t * WorldRayDirection();
-    attr.normal = /*normalize(pos - s.center);*/normalize(2 * (pos / (s.radii * s.radii))); //gradient function of x^2/rx^2 + y^2/ry^2 + z^2/rz^2 - 1 = 0
-    ReportHit(t, hitKind, attr);    
+    //float3 pos = WorldRayOrigin() + t * WorldRayDirection();
+    //attr.normal = /*normalize(pos - s.center);*/normalize(2 * (pos / (s.radii * s.radii))); //gradient function of x^2/rx^2 + y^2/ry^2 + z^2/rz^2 - 1 = 0
+    ReportHit(t0, hitKind, attr);    
 }
 
 [shader("closesthit")]
