@@ -219,17 +219,16 @@ void MyRaygenShader()
     float3 volColor = float3(0, 0, 0);
     while (payload.hasHit)
     {
-        //payload.hasHit = false;
         TraceRay(Scene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, ~0, 0, 1, 0, ray, payload);
         if (payload.hasHit)
         {
             float tri = CalculateTransmittance(ray.Origin, ray.Direction, payload.intersection);
             trAcc *= tri;
             volColor += Kernels[payload.intersection.pIndex].albedo * (1 - tri); //when volume is purely absorptive albedo = (0,0,0)
-            ray.Origin = ray.Origin + rayDir * payload.intersection.tIn;
+            ray.Origin = ray.Origin + rayDir * payload.intersection.tIn; //next ray will originate from closest intersection point, effectively ignoring previous closest primitive 
         }   
     }
-    float3 color = volColor * (1 - trAcc) + background.rgb * trAcc;
+    float3 color = volColor * (1 - trAcc) + background.rgb * trAcc; //blends volume color and background depending on accumulated volume transmittance along ray
     // Write the raytraced color to the output texture.
     RenderTarget[DispatchRaysIndex().xy] = float4(color, 1);
 }
@@ -237,8 +236,6 @@ void MyRaygenShader()
 [shader("miss")]
 void MyMissShader(inout RayPayload payload)
 {
-    //float4 background = float4(0.0f, 0.2f, 0.4f, 1.0f);
-    //payload.color = background;
     payload.hasHit = false;
 }
 
@@ -247,7 +244,7 @@ void EllipsoidIntersectionShader()
 {
     uint ellipsoidIndex = PrimitiveIndex();
     Ellipsoid s = Ellipsoids[ellipsoidIndex];
-    //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
+    //Convert ray origin and direction into ellipsoid local space
     float3 r0 = mul((float3x3)transpose(s.rot), WorldRayOrigin() - s.center);
     float3 rd = mul((float3x3)transpose(s.rot), WorldRayDirection());
     
@@ -256,6 +253,8 @@ void EllipsoidIntersectionShader()
     float3 rdN = rd / scale;
     float3 r0N = r0 / scale;
     
+    //Given ray: r0 + t*rd, substitute as (x,y,z) in ellipsoid equation: x^2/rx^2 + y^2/ry^2 + z^2/rz^2 = 1 (rx,ry,rz = ellipsoid radii)
+    //Result is quadratic equation at^2 + tx + c = 0
     float a = dot(rdN, rdN);
     float b = 2 * dot(r0N, rdN);
     float c = dot(r0N, r0N) - 1.0f;   
@@ -264,23 +263,19 @@ void EllipsoidIntersectionShader()
     uint hitKind = 0; //user defined
     
     float discriminant = b * b - 4.0f * a * c;
-    if (discriminant < 0.0f)
+    if (discriminant < 0.0f) //no real solution -> no intersection
         return;
 
+    //solving the quadratic equation:
     float sqrtDisc = sqrt(discriminant);
     float t0 = (-b - sqrtDisc) / (2.0f * a);
     float t1 = (-b + sqrtDisc) / (2.0f * a);
 
-    if (t0 <= 0 /*RayTMin()*/) //prevents intersection from ray generated inside the ellipsoid
+    if (t0 <= 0) //prevents intersection from ray generated inside the ellipsoid
         return;
     
-    //float t = (t0 > 0) ? t0 : t1;
     attr.tIn = t0;
     attr.tOut = t1;
-    
-    //if (ellipsoidIndex == 2)
-    //float3 pos = WorldRayOrigin() + t * WorldRayDirection();
-    //attr.normal = /*normalize(pos - s.center);*/normalize(2 * (pos / (s.radii * s.radii))); //gradient function of x^2/rx^2 + y^2/ry^2 + z^2/rz^2 - 1 = 0
     ReportHit(t0, hitKind, attr);    
 }
 
